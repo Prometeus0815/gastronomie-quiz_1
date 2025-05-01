@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktives Multiple-Choice-Quiz (50 Fragen): Gastronomie & Hotellerie Österreich</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles - Simplified for Natural Scrolling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            padding: 1rem; /* Padding around the card */
+        }
+        .quiz-card {
+             /* Base padding, larger on md+ */
+             @apply bg-white p-4 md:p-6 rounded-xl shadow-lg w-full max-w-2xl mx-auto;
+             /* Removed flex and max-height */
+             margin-bottom: 4rem; /* Add extra space at the bottom */
+        }
+
+        /* No .scrollable-content needed */
+
+        .question-area { @apply mb-5; }
+        .question-text { @apply text-base md:text-lg text-gray-800 font-semibold; }
+
+        /* Options styling */
+        #options-container { display: block; }
+        .option-btn {
+            display: block !important; width: 100% !important; text-align: left;
+            padding: 0.75rem; margin-bottom: 0.75rem !important; border-radius: 0.5rem;
+            border-width: 2px; border-color: #d1d5db; background-color: #ffffff;
+            color: #374151; transition: background-color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer; font-size: 0.9rem; line-height: 1.4;
+        }
+        @media (min-width: 768px) { .option-btn { font-size: 1rem; } }
+        .option-btn:hover { background-color: #f9fafb; }
+        .option-btn.selected { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
+        .option-btn.correct { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: 600 !important; }
+        .option-btn.incorrect { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: 600 !important; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .option-btn:disabled.correct, .option-btn:disabled.incorrect { opacity: 1; }
+        .option-btn:disabled:hover { background-color: initial; }
+        .option-btn:disabled.correct:hover { background-color: #dcfce7 !important; }
+        .option-btn:disabled.incorrect:hover { background-color: #fee2e2 !important; }
+
+        /* Feedback styling */
+        .feedback {
+            min-height: 2em; margin-top: 1rem; font-weight: bold;
+            text-align: center; font-size: 0.9rem;
+        }
+        @media (min-width: 768px) { .feedback { font-size: 1rem; } }
+        .feedback.correct { color: #16a34a; }
+        .feedback.incorrect { color: #dc2626; }
+
+        /* Controls layout - Sits naturally below content */
+        .controls {
+            margin-top: 2rem; /* Keep margin from content above */
+            /* border-top: 1px solid #e5e7eb; /* Optional separator */
+            padding-top: 1rem; /* Add padding above controls */
+            display: flex;
+            flex-direction: column; align-items: stretch; gap: 0.75rem;
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .controls { flex-direction: row; justify-content: space-between; align-items: center; gap: 0; }
+        }
+        .question-counter { font-size: 0.875rem; color: #4b5563; text-align: center; }
+        @media (min-width: 640px) { .question-counter { text-align: left; } }
+        .controls > div { display: flex; justify-content: center; width: 100%; }
+        @media (min-width: 640px) { .controls > div { width: auto; justify-content: flex-end; } }
+
+        /* General Button Styles */
+        .btn {
+            display: inline-block !important; font-weight: 600 !important;
+            padding: 0.6rem 1.25rem !important; border-radius: 0.5rem !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+            transition: background-color 0.3s ease; cursor: pointer; outline: none;
+            width: 100%; text-align: center;
+        }
+        @media (min-width: 640px) { .btn { width: auto; } }
+        .btn:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
+        .btn-primary { background-color: #2563eb !important; color: #ffffff !important; }
+        .btn-primary:hover { background-color: #1d4ed8 !important; }
+        .btn:disabled { background-color: #9ca3af !important; color: #e5e7eb !important; cursor: not-allowed !important; box-shadow: none !important; opacity: 0.6 !important; }
+        .hidden { display: none !important; }
+
+        /* Heading */
+        h1 { @apply text-xl md:text-2xl font-bold text-center text-blue-800 mb-4; }
+
+        /* Quiz Complete Styling */
+         #quiz-complete {
+             /* Basic centering */
+             text-align: center;
+             padding: 2rem 0; /* Add padding */
+         }
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body> <div class="quiz-card">
+        <h1>Multiple-Choice-Quiz (50 Fragen): Gastronomie & Hotellerie</h1>
+
+        <div id="quiz">
+            <div class="question-area">
+                 <p id="question-text" class="question-text"></p>
+            </div>
+            <div id="options-container" class="mt-4">
+                </div>
+            <div id="feedback" class="feedback"></div>
+
+            <div class="controls">
+                <span id="question-counter" class="question-counter">Frage 1 von 50</span>
+                <div> <button id="check-btn" class="btn btn-primary" disabled>Antwort prüfen</button>
+                    <button id="next-btn" class="btn btn-primary hidden">Nächste Frage</button>
+                 </div>
+            </div>
+        </div>
+
+         <div id="quiz-complete" class="hidden text-center p-6">
+            <h2 class="text-2xl font-bold text-green-700">Quiz beendet!</h2>
+            <p class="text-gray-700 mt-4 text-lg">Gut gemacht! Sie haben <span id="final-score" class="font-bold">0</span> von <span id="total-possible-score" class="font-bold">50</span> Fragen richtig beantwortet.</p>
+            <button id="restart-btn" class="btn btn-primary mt-8">Quiz neu starten</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Quiz Data (Multiple Choice - 50 Questions) ---
+        const quizData = [
+            // --- Existing 10 Questions (adjusted text) ---
+             {
+                question: "Was ist ein wichtiger Unterschied beim Nachpinseln von Strudelteig im Vergleich zum Ziehen des Teiges?",
+                options: [ "Er wird mit Eigelb nachgepinselt.", "Er wird mit geschmolzener Butter nachgepinselt.", "Er wird mit Olivenöl nachgepinselt.", "Er wird gar nicht nachgepinselt." ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Gruppe enthält NUR traditionelle österreichische Mehlspeisen, die im ursprünglichen Text genannt wurden?",
+                options: [ "Apfelstrudel, Sacher Torte, Gugelhupf", "Marillenknödel, Kaiserschmarren, Salzburger Nockerln", "Wiener Schnitzel, Tafelspitz, Gulasch", "Linzer Torte, Germknödel, Palatschinken" ],
+                correctAnswerIndex: 0
+            },
+            {
+                question: "Welche Informationen müssen auf der Verpackung von eingefrorenem Fleisch MINDESTENS notiert sein?",
+                options: [ "Nur Bezeichnung und MHD.", "Bezeichnung, Einfrierdatum, MHD und Allergene.", "Einfrierdatum, Gewicht und Herkunft.", "Bezeichnung, Zubereitungshinweis und Preis." ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Wie lange darf ein durcherhitztes warmes Buffet maximal stehen, bevor es wieder erhitzt werden muss?",
+                options: [ "1 Stunde", "2 Stunden", "3 Stunden", "4 Stunden" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welches DAC-Gebiet im Burgenland ist besonders für Blaufränkisch und edelsüße Weine bekannt?",
+                options: [ "Leithaberg DAC", "Neusiedlersee DAC", "Mittelburgenland DAC", "Eisenberg DAC" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welcher Kaffee-Typ wird eher im Hochland angebaut und häufig für Filterkaffee verwendet?",
+                options: [ "Robusta", "Arabica", "Liberica", "Excelsa" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Wann ist die Aushändigung eines Dienstzettels NICHT notwendig?",
+                options: [ "Bei Teilzeitbeschäftigung.", "Wenn das Gehalt mündlich vereinbart wurde.", "Wenn bereits ein schriftlicher Dienstvertrag existiert.", "Bei einer Beschäftigungsdauer unter einem Monat." ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welche drei Zutaten waren die ursprünglichen Hauptbestandteile des deutschen Reinheitsgebots von 1516?",
+                options: [ "Gerste, Hopfen, Hefe", "Weizen, Hopfen, Wasser", "Getreide (Gerste/Weizen), Hopfen, Wasser", "Malz, Hopfen, Hefe, Wasser" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Was darf einem Gast bei einem \"No Show\" NICHT verrechnet werden?",
+                options: [ "Der gesamte Zimmerpreis.", "Nur die erste Nacht.", "Stornogebühren.", "Ortstaxe und Frühstück." ],
+                correctAnswerIndex: 3
+            },
+            {
+                question: "Was ist die Bemessungsgrundlage für die Kommunalsteuer in Österreich?",
+                options: [ "Der Unternehmensgewinn.", "Die gesamten Bruttolöhne aller Dienstnehmer.", "Der Umsatz des Betriebs.", "Die Summe der Sozialversicherungsbeiträge." ],
+                correctAnswerIndex: 1
+            },
+             // --- New Questions (11-50) ---
+             {
+                question: "Welche Temperatur sollte ein Kühlhaus für die Lagerung von Frischfleisch idealerweise haben?",
+                options: [ "-18°C bis -22°C", "0°C bis +2°C", "+4°C bis +6°C", "+8°C bis +10°C" ],
+                correctAnswerIndex: 1 // Typical range for fresh meat
+            },
+            {
+                question: "Was bedeutet die Abkürzung HACCP im Kontext der Lebensmittelsicherheit?",
+                options: [ "Hygiene And Cleaning Control Plan", "Hazard Analysis Critical Control Points", "Hotel And Catering Certification Program", "Healthy And Careful Cooking Practices" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche österreichische Weinbauregion ist besonders für den Grünen Veltliner bekannt?",
+                options: [ "Südsteiermark", "Wachau", "Burgenland", "Thermenregion" ],
+                correctAnswerIndex: 1 // Wachau is iconic for Grüner Veltliner
+            },
+             {
+                question: "Was versteht man unter 'Tranchieren' im Service?",
+                options: [ "Das Mixen von Cocktails", "Das fachgerechte Zerlegen von Fleisch beim Gast", "Das Servieren von Wein", "Das Flambieren von Desserts" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Zutat ist KEIN Bestandteil eines klassischen Wiener Schnitzels?",
+                options: [ "Kalbfleisch", "Semmelbrösel", "Mehl", "Schweinefleisch" ],
+                correctAnswerIndex: 3 // Original Wiener Schnitzel is veal
+            },
+            {
+                question: "Was ist die Hauptaufgabe eines Sommeliers?",
+                options: [ "Die Zubereitung von Desserts", "Die Weinberatung und der Weinservice", "Die Organisation der Küchenbrigade", "Die Gästebetreuung an der Rezeption" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche gesetzliche Regelung legt die Mindeststandards für Arbeitsbedingungen in einer Branche fest?",
+                options: [ "Dienstzettel", "Arbeitsvertrag", "Kollektivvertrag (KV)", "Gewerbeordnung" ],
+                correctAnswerIndex: 2
+            },
+             {
+                question: "Was ist ein 'Mise en place' in der Küche?",
+                options: [ "Ein spezielles französisches Gericht", "Die Reinigung nach dem Kochen", "Die Vorbereitung aller Zutaten und Werkzeuge vor dem Kochen", "Die Speisekarte des Tages" ],
+                correctAnswerIndex: 2
+            },
+             {
+                question: "Welche Temperatur ist für die Lagerung von Trockenwaren (z.B. Mehl, Zucker) optimal?",
+                options: [ "0°C - 4°C", "5°C - 10°C", "15°C - 20°C", "Über 25°C" ],
+                correctAnswerIndex: 2 // Cool, dry place
+            },
+            {
+                question: "Was bedeutet 'à la carte'?",
+                options: [ "Ein festes Menü zum Festpreis", "Bestellung nach der Speisekarte, einzelne Gerichte", "Ein Tagesangebot", "Ein Buffet" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Aufgabe hat die Österreichische Gesundheitskasse (ÖGK) im Zusammenhang mit Dienstnehmern?",
+                options: [ "Festlegung der Kündigungsfristen", "Einhebung der Kommunalsteuer", "Anmeldung der Dienstnehmer zur Sozialversicherung", "Ausstellung des Gewerbescheins" ],
+                correctAnswerIndex: 2
+            },
+             {
+                question: "Was versteht man unter 'Flambieren'?",
+                options: [ "Das Marinieren von Fleisch", "Das Übergießen und Anzünden von Speisen mit Alkohol", "Das Pürieren von Gemüse", "Das Backen im Holzofen" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Rebsorte ist typisch für die Südsteiermark?",
+                options: [ "Blaufränkisch", "Zweigelt", "Sauvignon Blanc", "Grüner Veltliner" ],
+                correctAnswerIndex: 2 // Sauvignon Blanc is very typical for Südsteiermark
+            },
+            {
+                question: "Was ist ein 'Gedeck' im Restaurant?",
+                options: [ "Die Tischdekoration", "Der Platz eines Gastes mit Besteck, Gläsern, Serviette", "Ein kleiner Gruß aus der Küche", "Die Rechnung" ],
+                correctAnswerIndex: 1
+            },
+             {
+                question: "Welche Art von Arbeitsverhältnis endet automatisch zu einem vereinbarten Zeitpunkt?",
+                options: [ "Unbefristetes Arbeitsverhältnis", "Befristetes Arbeitsverhältnis", "Freier Dienstvertrag", "Werkvertrag" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Was ist die übliche Dauer der Probezeit im österreichischen Hotel- und Gastgewerbe laut Kollektivvertrag?",
+                options: [ "Eine Woche", "Zwei Wochen", "Ein Monat", "Drei Monate" ],
+                correctAnswerIndex: 2 // Typically one month, can be shorter
+            },
+            {
+                question: "Welche Biersorte wird typischerweise obergärig gebraut?",
+                options: [ "Pils", "Märzen", "Weizenbier", "Bockbier" ],
+                correctAnswerIndex: 2 // Weizenbier (Weissbier) is a classic top-fermented beer
+            },
+             {
+                question: "Was ist ein 'Amuse-Gueule' oder 'Amuse-Bouche'?",
+                options: [ "Die Hauptspeise", "Ein kleiner Gruß aus der Küche vor dem Menü", "Das Dessert", "Ein Digestif" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Aufgabe hat ein Property Management System (PMS) im Hotel?",
+                options: [ "Verwaltung der Küchenvorräte", "Steuerung der Heizungsanlage", "Verwaltung von Reservierungen, Gästedaten und Abrechnung", "Planung des Personaleinsatzes" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Was bedeutet die Abkürzung OTA im Tourismus?",
+                options: [ "Official Travel Authority", "Online Travel Agent", "Overseas Tourist Assistance", "Optional Tour Add-on" ],
+                correctAnswerIndex: 1
+            },
+             {
+                question: "Welcher österreichische Prädikatswein hat das höchste Mindestmostgewicht?",
+                options: [ "Spätlese", "Auslese", "Beerenauslese", "Trockenbeerenauslese" ],
+                correctAnswerIndex: 3 // TBA requires the highest sugar concentration
+            },
+            {
+                question: "Was versteht man unter 'Filetieren' bei Fisch?",
+                options: [ "Den Fisch panieren", "Den Fisch räuchern", "Das Entfernen der Gräten", "Den Fisch frittieren" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welche Temperaturzone ist für Tiefkühlprodukte vorgeschrieben?",
+                options: [ "0°C bis -5°C", "-5°C bis -10°C", "-12°C bis -15°C", "-18°C oder kälter" ],
+                correctAnswerIndex: 3 // Standard for frozen goods
+            },
+            {
+                question: "Was ist ein 'Storno' im Hotel?",
+                options: [ "Eine zusätzliche Buchung", "Eine Beschwerde eines Gastes", "Die Stornierung einer Reservierung", "Ein Upgrade des Zimmers" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welche Zutat ist charakteristisch für Salzburger Nockerln?",
+                options: [ "Schokolade", "Nüsse", "Viel Eischnee", "Früchte" ],
+                correctAnswerIndex: 2 // Light and airy due to beaten egg whites
+            },
+            {
+                question: "Was ist ein 'gewerberechtlicher Geschäftsführer'?",
+                options: [ "Der Eigentümer des Betriebs", "Der Küchenchef", "Eine Person mit Befähigungsnachweis, verantwortlich für die Einhaltung der Gewerbeordnung", "Der Marketingleiter" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welches System wird für die elektronische Meldung an die Sozialversicherungsträger verwendet?",
+                options: [ "PMS", "HACCP", "ELDA", "DAC" ],
+                correctAnswerIndex: 2 // Elektronischer Datenaustausch
+            },
+            {
+                question: "Was ist ein 'Digestif'?",
+                options: [ "Ein Aperitif vor dem Essen", "Ein Verdauungsschnaps nach dem Essen", "Ein alkoholfreier Cocktail", "Ein Kaffee" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Region ist KEIN offizielles Weinbaugebiet in Österreich?",
+                options: [ "Wachau", "Neusiedlersee", "Tirol", "Kamptal" ],
+                correctAnswerIndex: 2 // Tirol is not a specific DAC region, though some wine is grown there.
+            },
+             {
+                question: "Was ist die Hauptzutat von Kaiserschmarren?",
+                options: [ "Grieß", "Palatschinkenteig (Eierkuchenteig)", "Kartoffelteig", "Blätterteig" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Information ist typischerweise NICHT auf einem Dienstzettel zu finden?",
+                options: [ "Gehalt", "Beschäftigungsausmaß", "Vertragsdauer", "Bankverbindung des Arbeitgebers" ],
+                correctAnswerIndex: 3 // Bank details are usually handled separately
+            },
+            {
+                question: "Was bedeutet 'FIFO' im Zusammenhang mit der Lagerhaltung?",
+                options: [ "Fast In, Fast Out", "First In, First Out", "Food Inventory Follows Order", "Fresh Ingredients From Outside" ],
+                correctAnswerIndex: 1 // Principle for stock rotation
+            },
+            {
+                question: "Welches Getränk wird typischerweise als 'Verlängerter' in Österreich bestellt?",
+                options: [ "Ein großer Espresso mit heißem Wasser verlängert", "Ein Bier mit Limonade", "Ein Wein mit Mineralwasser", "Ein doppelter Espresso" ],
+                correctAnswerIndex: 0
+            },
+            {
+                question: "Was ist eine ' Küchenbrigade'?",
+                options: [ "Eine Gruppe von Servicemitarbeitern", "Die Hierarchie und Organisation des Küchenpersonals", "Ein Reinigungsunternehmen für Küchen", "Eine Einkaufsgenossenschaft für Restaurants" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Welche Aufgabe hat ein 'Chef de Rang' im Service?",
+                options: [ "Leitung der gesamten Servicebrigade", "Verantwortung für eine bestimmte Station (Rang) im Restaurant", "Zubereitung der Getränke an der Bar", "Empfang der Gäste am Eingang" ],
+                correctAnswerIndex: 1
+            },
+            {
+                question: "Was ist der Hauptunterschied zwischen einem Sekt und einem Frizzante?",
+                options: [ "Die Herkunft der Trauben", "Der Alkoholgehalt", "Der Kohlensäuredruck", "Die Farbe" ],
+                correctAnswerIndex: 2 // Sekt has higher pressure (>3 bar) than Frizzante (1-2.5 bar)
+            },
+             {
+                question: "Was versteht man unter 'Sous-vide'-Garen?",
+                options: [ "Grillen über Holzkohle", "Frittieren in heißem Öl", "Garen von vakuumierten Lebensmitteln im Wasserbad bei kontrollierter Temperatur", "Backen im Dampfgarer" ],
+                correctAnswerIndex: 2
+            },
+            {
+                question: "Welche Zutat gibt dem 'Tafelspitz' seinen Namen?",
+                options: [ "Die Art des Servierens auf einem Brett", "Das spezielle Gewürz", "Das verwendete Stück vom Rind (Schwanzstück)", "Der Koch, der es erfunden hat" ],
+                correctAnswerIndex: 2 // Refers to the cut of beef
+            },
+            {
+                question: "Was ist eine 'Ortstaxe' oder Kurtaxe?",
+                options: [ "Eine Steuer auf alkoholische Getränke", "Eine Gebühr für die Müllentsorgung", "Eine lokale Abgabe pro Gast und Nächtigung an die Gemeinde", "Eine Servicegebühr für das Personal" ],
+                correctAnswerIndex: 2
+            }
+        ];
+
+
+        // --- DOM Elements ---
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionCounterEl = document.getElementById('question-counter');
+        const quizContainer = document.getElementById('quiz');
+        const quizCompleteContainer = document.getElementById('quiz-complete');
+        const finalScoreEl = document.getElementById('final-score');
+        const totalPossibleScoreEl = document.getElementById('total-possible-score');
+        const restartBtn = document.getElementById('restart-btn');
+        // Removed scrollableContent reference
+
+        // --- State ---
+        let currentQuestionIndex = 0;
+        let selectedAnswerIndex = null;
+        let score = 0;
+        let quizFinished = false; // Tracks if the current question has been checked
+
+        // --- Functions ---
+
+        // Function to display the current question and options
+        function displayQuestion() {
+            quizFinished = false;
+            selectedAnswerIndex = null;
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionTextEl.textContent = currentQuestion.question;
+            questionCounterEl.textContent = `Frage ${currentQuestionIndex + 1} von ${quizData.length}`;
+
+            optionsContainerEl.innerHTML = '';
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'feedback';
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option-btn';
+                button.dataset.index = index;
+                button.addEventListener('click', handleOptionSelect);
+                optionsContainerEl.appendChild(button);
+            });
+
+            // Reset button states
+            checkBtn.disabled = true;
+            checkBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+
+            // Ensure the main quiz container is visible
+             quizContainer.style.display = 'block'; // Use block as flex is removed from card
+             quizCompleteContainer.classList.add('hidden');
+
+             // Scroll window to top to see the question
+             window.scrollTo(0, 0);
+        }
+
+        // Function to handle option selection (before checking)
+        function handleOptionSelect(event) {
+            if (quizFinished) return;
+
+            const selectedButton = event.target;
+            selectedAnswerIndex = parseInt(selectedButton.dataset.index);
+
+            const optionButtons = optionsContainerEl.querySelectorAll('.option-btn');
+            optionButtons.forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'incorrect');
+            });
+
+            selectedButton.classList.add('selected');
+            checkBtn.disabled = false;
+        }
+
+        // Function to check the selected answer
+        function checkAnswer() {
+            if (selectedAnswerIndex === null) return;
+
+            quizFinished = true;
+            const correctIndex = quizData[currentQuestionIndex].correctAnswerIndex;
+            const optionButtons = optionsContainerEl.querySelectorAll('.option-btn');
+
+            optionButtons.forEach((btn, index) => {
+                btn.disabled = true;
+                btn.classList.remove('selected');
+
+                if (index === correctIndex) {
+                    btn.classList.add('correct');
+                } else if (index === selectedAnswerIndex) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            if (selectedAnswerIndex === correctIndex) {
+                score++;
+                feedbackEl.textContent = 'Richtig!';
+                feedbackEl.classList.add('correct');
+            } else {
+                feedbackEl.textContent = 'Falsch!';
+                feedbackEl.classList.add('incorrect');
+            }
+
+            checkBtn.classList.add('hidden');
+            checkBtn.disabled = true; // Ensure it's disabled
+            nextBtn.classList.remove('hidden');
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'Ergebnis anzeigen';
+            } else {
+                nextBtn.textContent = 'Nächste Frage';
+            }
+             // Scroll to the feedback/button area after checking
+             // Use try-catch in case element is not found (shouldn't happen here)
+             try {
+                feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+             } catch (e) {
+                console.error("Could not scroll to feedback:", e);
+             }
+        }
+
+
+        // Function to go to the next question or show results
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            } else {
+                 // Hide quiz, show completion screen
+                 quizContainer.style.display = 'none'; // Hide quiz container
+                 quizCompleteContainer.classList.remove('hidden');
+                 quizCompleteContainer.style.display = 'block'; // Show completion screen
+
+                 finalScoreEl.textContent = score;
+                 totalPossibleScoreEl.textContent = quizData.length;
+                 // Scroll to top for completion message
+                 window.scrollTo(0,0);
+            }
+        }
+
+        // Function to restart the quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswerIndex = null;
+            quizFinished = false;
+            displayQuestion(); // This will also make the quiz container visible again
+        }
+
+        // --- Event Listeners ---
+        checkBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+
+        // --- Initial Load ---
+        displayQuestion();
+
+    </script>
+
+</body>
+</html>
