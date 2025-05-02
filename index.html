@@ -3,307 +3,436 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktives Multiple-Choice-Quiz: Gastronomie & Hotellerie Österreich</title>
+    <title>Interaktives Lernquiz: Gastronomie & Recht (Button-Layout fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom Styles - Simplified for Natural Scrolling */
+        /* Basic body styling */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            padding: 1rem; /* Padding around the card */
+            background-color: #f3f4f6; /* Tailwind gray-100 */
         }
-        .quiz-card {
-             /* Base padding, larger on md+ */
-             @apply bg-white p-4 md:p-6 rounded-xl shadow-lg w-full max-w-2xl mx-auto;
-             /* Removed flex and max-height */
-             margin-bottom: 4rem; /* Add extra space at the bottom */
+        /* Container for the quiz */
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
         }
-
-        /* No .scrollable-content needed */
-
-        .question-area { @apply mb-5; }
-        .question-text { @apply text-base md:text-lg text-gray-800 font-semibold; }
-
-        /* Options styling */
-        #options-container { display: block; }
-        .option-btn {
-            display: block !important; width: 100% !important; text-align: left;
-            padding: 0.75rem; margin-bottom: 0.75rem !important; border-radius: 0.5rem;
-            border-width: 2px; border-color: #d1d5db; background-color: #ffffff;
-            color: #374151; transition: background-color 0.2s ease, border-color 0.2s ease;
-            cursor: pointer; font-size: 0.9rem; line-height: 1.4;
+        /* Styling for the question text */
+        .question-text {
+            font-size: 1.125rem; /* Tailwind text-lg */
+            font-weight: 500; /* Tailwind font-medium */
+            margin-bottom: 1.5rem;
+            color: #1f2937; /* Tailwind gray-800 */
         }
-        @media (min-width: 768px) { .option-btn { font-size: 1rem; } }
-        /* Remove hover effect for disabled buttons */
-        .option-btn:disabled {
+        /* Styling for answer option buttons */
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            background-color: white;
+            color: #374151; /* Tailwind gray-700 */
+            transition: background-color 0.2s, border-color 0.2s;
+            cursor: pointer; /* Add cursor pointer */
+        }
+        /* Hover effect for enabled option buttons */
+        .option-button:hover:not(:disabled) {
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            border-color: #9ca3af; /* Tailwind gray-400 */
+        }
+        /* Style for selected but not yet checked/confirmed answer */
+        .option-button.selected:not(.correct):not(.incorrect) {
+            background-color: #dbeafe; /* Tailwind blue-100 */
+            border-color: #60a5fa; /* Tailwind blue-400 */
+        }
+        /* Style for correctly answered option */
+        .option-button.correct {
+            background-color: #d1fae5 !important; /* Tailwind green-100, !important to override other states */
+            border-color: #34d399 !important; /* Tailwind green-400 */
+            color: #065f46 !important; /* Tailwind green-800 */
+        }
+        /* Style for incorrectly answered option */
+        .option-button.incorrect {
+            background-color: #fee2e2 !important; /* Tailwind red-100 */
+            border-color: #f87171 !important; /* Tailwind red-400 */
+            color: #991b1b !important; /* Tailwind red-800 */
+        }
+        /* Style for disabled option buttons (after answer or when reviewing) */
+         .option-button:disabled {
+            background-color: #f3f4f6; /* Lighter gray */
+            border-color: #e5e7eb;
+            color: #9ca3af; /* Lighter text */
+            cursor: not-allowed; /* Indicate non-interactive */
+        }
+        /* Styling for the feedback text (correct/incorrect) */
+        .feedback-text {
+            margin-top: 1rem;
+            font-weight: 500;
+            min-height: 1.5em; /* Reserve space to prevent layout shifts */
+        }
+        .feedback-text.correct {
+            color: #059669; /* Tailwind green-600 */
+        }
+        .feedback-text.incorrect {
+            color: #dc2626; /* Tailwind red-600 */
+        }
+        /* Container for the progress bar */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 0.25rem; /* Tailwind rounded-sm */
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        /* The progress bar itself */
+        .progress-bar {
+            height: 10px;
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            width: 0%; /* Initial width */
+            transition: width 0.3s ease-in-out; /* Smooth transition */
+        }
+        /* General styling for navigation buttons */
+        .navigation-button {
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            font-weight: 500;
+            transition: background-color 0.2s, opacity 0.2s, visibility 0s; /* Added visibility transition (instant) */
+            cursor: pointer;
+        }
+        /* Style for disabled navigation buttons */
+         .navigation-button:disabled {
+             background-color: #9ca3af; /* Tailwind gray-400 */
              cursor: not-allowed;
              opacity: 0.7;
+         }
+        /* Styling for the 'Next'/'Submit' button */
+        .navigation-button.action {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            color: white;
         }
-        .option-btn:disabled:hover {
-             background-color: #ffffff !important; /* Keep original background */
+        .navigation-button.action:hover:not(:disabled) {
+            background-color: #2563eb; /* Tailwind blue-600 */
         }
-        .option-btn.selected { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
-        .option-btn.correct { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: 600 !important; opacity: 1 !important; }
-        .option-btn.incorrect { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; font-weight: 600 !important; opacity: 1 !important; }
-        /* Ensure correct/incorrect styles override disabled hover */
-        .option-btn:disabled.correct:hover { background-color: #dcfce7 !important; }
-        .option-btn:disabled.incorrect:hover { background-color: #fee2e2 !important; }
-
-
-        /* Feedback styling */
-        .feedback {
-            min-height: 2em; margin-top: 1rem; font-weight: bold;
-            text-align: center; font-size: 0.9rem;
+        /* Styling for the 'Previous' button */
+         .navigation-button.prev {
+            background-color: #6b7280; /* Tailwind gray-500 */
+            color: white;
         }
-        @media (min-width: 768px) { .feedback { font-size: 1rem; } }
-        .feedback.correct { color: #16a34a; }
-        .feedback.incorrect { color: #dc2626; }
-
-        /* Controls layout - Sits naturally below content */
-        .controls {
-            margin-top: 2rem; /* Keep margin from content above */
-            padding-top: 1rem; /* Add padding above controls */
+        .navigation-button.prev:hover:not(:disabled) {
+            background-color: #4b5563; /* Tailwind gray-600 */
+        }
+        /* Styling for the 'Restart' button */
+         .navigation-button.restart {
+            background-color: #10b981; /* Tailwind emerald-500 */
+            color: white;
+        }
+        .navigation-button.restart:hover {
+            background-color: #059669; /* Tailwind emerald-600 */
+        }
+        /* Styling for the score text on the results page */
+        .score-text {
+             font-size: 1.125rem; /* Tailwind text-lg */
+             font-weight: 500;
+             margin-bottom: 1rem;
+        }
+        /* Styling for the final score number */
+        .final-score {
+            font-size: 1.5rem; /* Tailwind text-2xl */
+            font-weight: 700; /* Tailwind font-bold */
+            color: #1d4ed8; /* Tailwind blue-700 */
+        }
+         /* Styling for the grade text */
+        .grade-text {
+            font-size: 1.25rem; /* Tailwind text-xl */
+            font-weight: 600; /* Tailwind font-semibold */
+            margin-top: 0.5rem; /* Add some space above the grade */
+        }
+        /* Utility class to hide elements using display: none */
+        .hidden {
+             display: none;
+        }
+         /* Utility class to hide elements visually but keep layout space */
+         .invisible {
+             visibility: hidden;
+             pointer-events: none; /* Prevent interaction with invisible elements */
+         }
+        /* Container for navigation buttons (Previous, Submit, Next) */
+        .button-container {
             display: flex;
-            flex-direction: column; align-items: stretch; gap: 0.75rem;
+            justify-content: space-between; /* Space between prev and action buttons */
+            align-items: center;
+            margin-top: 1.5rem; /* mt-6 */
         }
-        @media (min-width: 640px) { /* sm breakpoint */
-            .controls { flex-direction: row; justify-content: space-between; align-items: center; gap: 1rem; /* Add gap for buttons */ }
+        /* Container specifically for the right-aligned action buttons */
+        .action-button-group {
+            display: flex;
+            gap: 0.5rem; /* space-x-2 */
         }
-        .question-counter { font-size: 0.875rem; color: #4b5563; text-align: center; }
-        @media (min-width: 640px) { .question-counter { text-align: left; } }
-
-        /* Wrapper for action buttons (Check/Next) */
-        .action-buttons {
-             display: flex;
-             justify-content: center; /* Center on mobile */
-             gap: 0.5rem; /* Space between buttons if both visible */
-             width: 100%;
-        }
-         @media (min-width: 640px) { /* sm breakpoint */
-             .action-buttons {
-                 width: auto; /* Auto width on larger screens */
-                 justify-content: flex-end; /* Align right */
-             }
-         }
-
-
-        /* General Button Styles */
-        .btn {
-            display: inline-block !important; font-weight: 600 !important;
-            padding: 0.6rem 1.25rem !important; border-radius: 0.5rem !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-            transition: background-color 0.3s ease; cursor: pointer; outline: none;
-            width: 100%; /* Full width when stacked */
-            text-align: center;
-        }
-        @media (min-width: 640px) { .btn { width: auto; } } /* Auto width when in row */
-
-        .btn:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
-        .btn-primary { background-color: #2563eb !important; color: #ffffff !important; }
-        .btn-primary:hover { background-color: #1d4ed8 !important; }
-        /* Style for the Back button */
-        .btn-secondary {
-             background-color: #d1d5db !important; /* gray-300 */
-             color: #1f2937 !important; /* gray-800 */
-        }
-        .btn-secondary:hover:not(:disabled) { /* Add :not(:disabled) to prevent hover on disabled */
-             background-color: #9ca3af !important; /* hover:gray-400 */
-        }
-
-        .btn:disabled { background-color: #9ca3af !important; color: #e5e7eb !important; cursor: not-allowed !important; box-shadow: none !important; opacity: 0.6 !important; }
-        .hidden { display: none !important; }
-
-        /* Heading */
-        h1 { @apply text-xl md:text-2xl font-bold text-center text-blue-800 mb-4; }
-
-        /* Quiz Complete Styling */
-         #quiz-complete {
-             /* Basic centering */
-             text-align: center;
-             padding: 2rem 0; /* Add padding */
-         }
 
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body> <div class="quiz-card">
-        <h1 id="quiz-title">Multiple-Choice-Quiz: Gastronomie & Hotellerie</h1>
+<body class="p-4">
 
-        <div id="quiz">
-            <div class="question-area">
-                 <p id="question-text" class="question-text"></p>
-            </div>
-            <div id="options-container" class="mt-4">
-                </div>
-            <div id="feedback" class="feedback"></div>
+    <div id="quiz-container" class="quiz-container">
+        <h1 class="text-2xl font-bold mb-6 text-center text-gray-700">Interaktives Lernquiz</h1>
 
-            <div class="controls">
-                <span id="question-counter" class="question-counter">Frage 1 von X</span>
-                <div class="action-buttons">
-                    <button id="prev-btn" class="btn btn-secondary" disabled>Zurück</button> <button id="check-btn" class="btn btn-primary" disabled>Antwort prüfen</button>
-                    <button id="next-btn" class="btn btn-primary hidden">Nächste Frage</button>
-                 </div>
+        <div id="progress-container" class="mb-6">
+             <div class="text-sm font-medium text-gray-600 mb-1" id="progress-label">Frage 1 von X</div>
+             <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
         </div>
 
-         <div id="quiz-complete" class="hidden text-center p-6">
-            <h2 class="text-2xl font-bold text-green-700">Quiz beendet!</h2>
-            <p class="text-gray-700 mt-4 text-lg">Gut gemacht! Sie haben <span id="final-score" class="font-bold">0</span> von <span id="total-possible-score" class="font-bold">X</span> Fragen richtig beantwortet.</p>
-            <button id="restart-btn" class="btn btn-primary mt-8">Quiz neu starten</button>
+        <div id="question-area">
+            <p id="question-text" class="question-text"></p>
+            <div id="options-container">
+                </div>
+            <div id="feedback" class="feedback-text mt-4"></div>
+        </div>
+
+        <div id="results-area" class="hidden text-center">
+            <h2 class="text-xl font-semibold mb-4">Quiz beendet!</h2>
+            <p class="score-text">Dein Ergebnis:</p>
+            <p class="final-score"><span id="final-score-correct">0</span> von <span id="final-score-total">0</span> richtig</p>
+            <p class="score-text mt-2"><span id="final-percentage">0</span>%</p>
+            <p class="grade-text" id="final-grade"></p>
+             <button id="restart-button" class="navigation-button restart mt-6">Quiz neu starten</button>
+        </div>
+
+        <div id="navigation-buttons" class="button-container">
+             <button id="prev-button" class="navigation-button prev invisible">Zurück</button>
+             <div class="action-button-group">
+                 <button id="submit-button" class="navigation-button action" disabled>Antwort prüfen</button> <button id="next-question-button" class="navigation-button action hidden">Nächste Frage</button> </div>
         </div>
     </div>
 
     <script>
-        // --- Quiz Data (Combined and Deduplicated) ---
+        // --- Quiz Data ---
+        // Array containing all quiz questions, options, and correct answers.
         const quizData = [
-             // --- First 10 Questions (from original source) ---
-             { id: "q1", question: "Was ist ein wichtiger Unterschied beim Nachpinseln von Strudelteig im Vergleich zum Ziehen des Teiges?", options: [ "Er wird mit Eigelb nachgepinselt.", "Er wird mit geschmolzener Butter nachgepinselt.", "Er wird mit Olivenöl nachgepinselt.", "Er wird gar nicht nachgepinselt." ], correctAnswerIndex: 1 },
-             { id: "q2", question: "Welche Gruppe enthält NUR traditionelle österreichische Mehlspeisen, die im ursprünglichen Text genannt wurden?", options: [ "Apfelstrudel, Sacher Torte, Gugelhupf", "Marillenknödel, Kaiserschmarren, Salzburger Nockerln", "Wiener Schnitzel, Tafelspitz, Gulasch", "Linzer Torte, Germknödel, Palatschinken" ], correctAnswerIndex: 0 },
-             { id: "q3", question: "Welche Informationen müssen auf der Verpackung von eingefrorenem Fleisch MINDESTENS notiert sein?", options: [ "Nur Bezeichnung und MHD.", "Bezeichnung, Einfrierdatum, MHD und Allergene.", "Einfrierdatum, Gewicht und Herkunft.", "Bezeichnung, Zubereitungshinweis und Preis." ], correctAnswerIndex: 1 },
-             { id: "q4", question: "Wie lange darf ein durcherhitztes warmes Buffet maximal stehen, bevor es wieder erhitzt werden muss?", options: [ "1 Stunde", "2 Stunden", "3 Stunden", "4 Stunden" ], correctAnswerIndex: 2 },
-             { id: "q5", question: "Welches DAC-Gebiet im Burgenland ist besonders für Blaufränkisch und edelsüße Weine bekannt?", options: [ "Leithaberg DAC", "Neusiedlersee DAC", "Mittelburgenland DAC", "Eisenberg DAC" ], correctAnswerIndex: 1 },
-             { id: "q6", question: "Welcher Kaffee-Typ wird eher im Hochland angebaut und häufig für Filterkaffee verwendet?", options: [ "Robusta", "Arabica", "Liberica", "Excelsa" ], correctAnswerIndex: 1 },
-             { id: "q7", question: "Wann ist die Aushändigung eines Dienstzettels NICHT notwendig?", options: [ "Bei Teilzeitbeschäftigung.", "Wenn das Gehalt mündlich vereinbart wurde.", "Wenn bereits ein schriftlicher Dienstvertrag existiert.", "Bei einer Beschäftigungsdauer unter einem Monat." ], correctAnswerIndex: 2 },
-             { id: "q8", question: "Welche drei Zutaten waren die ursprünglichen Hauptbestandteile des deutschen Reinheitsgebots von 1516?", options: [ "Gerste, Hopfen, Hefe", "Weizen, Hopfen, Wasser", "Getreide (Gerste/Weizen), Hopfen, Wasser", "Malz, Hopfen, Hefe, Wasser" ], correctAnswerIndex: 2 },
-             { id: "q9", question: "Was darf einem Gast bei einem \"No Show\" NICHT verrechnet werden?", options: [ "Der gesamte Zimmerpreis.", "Nur die erste Nacht.", "Stornogebühren.", "Ortstaxe und Frühstück." ], correctAnswerIndex: 3 },
-             { id: "q10", question: "Was ist die Bemessungsgrundlage für die Kommunalsteuer in Österreich?", options: [ "Der Unternehmensgewinn.", "Die gesamten Bruttolöhne aller Dienstnehmer.", "Der Umsatz des Betriebs.", "Die Summe der Sozialversicherungsbeiträge." ], correctAnswerIndex: 1 },
+             // Lebensmittelkunde Block (Gerfried PDF / Lena PDF)
+            { question: "Welche Zutaten werden für einen Strudelteig benötigt?", options: ["Weizenmehl (Typ 480), Butter, Salz, kaltes Wasser", "Weizenmehl (Typ 700), Öl, Salz, lauwarmes Wasser", "Roggenmehl, Öl, Zucker, lauwarmes Wasser", "Dinkelmehl, Butter, Salz, Milch"], correctAnswer: "Weizenmehl (Typ 700), Öl, Salz, lauwarmes Wasser", source: "Gerfried PDF, F1 / Lena PDF S.1" },
+            { question: "Wie lange sollte Strudelteig rasten?", options: ["10 min", "30 min", "60 min", "Über Nacht"], correctAnswer: "30 min", source: "Gerfried PDF, F1 / Lena PDF S.1" },
+            { question: "Was ist ein wichtiger Schritt bei der Zubereitung von Kaiserschmarren?", options: ["Eier nicht trennen", "Eischnee unter die Masse heben", "Nur Dotter verwenden", "Keine Milch hinzufügen"], correctAnswer: "Eischnee unter die Masse heben", source: "Gerfried PDF, F2 / Lena PDF S.1" },
+            { question: "Welche der folgenden ist eine traditionelle österreichische Mehlspeise?", options: ["Cheesecake", "Tiramisu", "Linzer Torte", "Brownie"], correctAnswer: "Linzer Torte", source: "Gerfried PDF, F3 / Lena PDF S.1" },
+            { question: "Welches der folgenden ist ein traditionelles österreichisches Dessert?", options: ["Crème brûlée", "Panna Cotta", "Marillenknödel", "Mousse au Chocolat"], correctAnswer: "Marillenknödel", source: "Gerfried PDF, F3 / Lena PDF S.1" },
+            { question: "Was muss beim Einfrieren von Fleisch beschriftet werden?", options: ["Nur der Inhalt", "Nur das Datum des Einfrierens", "Datum des Einfrierens, Inhalt, evtl. MHD und Allergene", "Nur die Allergene"], correctAnswer: "Datum des Einfrierens, Inhalt, evtl. MHD und Allergene", source: "Gerfried PDF, F4 / Lena PDF S.1" },
+            { question: "Bei welcher Mindesttemperatur muss Fleisch tiefgekühlt gelagert werden?", options: ["-12°C", "-15°C", "-18°C", "-25°C"], correctAnswer: "-18°C", source: "Gerfried PDF, F5 / Lena PDF, S.1" },
+            { question: "Wie sollte Fleisch idealerweise aufgetaut werden?", options: ["Bei Raumtemperatur", "In der Mikrowelle", "Im Kühlhaus", "Unter heißem Wasser"], correctAnswer: "Im Kühlhaus", source: "Gerfried PDF, F4 / Lena PDF S.1" },
+            { question: "Welcher Temperaturbereich gilt generell für ein Kühlhaus?", options: ["0-4°C", "2-8°C", "5-10°C", "-2-2°C"], correctAnswer: "2-8°C", source: "Gerfried PDF, F5 / Lena PDF S.1" },
+            { question: "Bei welcher Temperatur sollte Faschiertes gelagert werden?", options: ["0°C", "3°C", "5°C", "8°C"], correctAnswer: "3°C", source: "Gerfried PDF, F5 / Lena PDF S.1" },
+            { question: "Wie wird Fisch idealerweise im Kühlhaus gelagert?", options: ["Offen auf einem Regal", "In einer geschlossenen Box", "Auf Eis um den Gefrierpunkt", "Eingefroren bei -5°C"], correctAnswer: "Auf Eis um den Gefrierpunkt", source: "Gerfried PDF, F5 / Lena PDF S.1" },
+            { question: "Welche Temperatur sollte ein Trockenlager haben?", options: ["Unter 10°C", "Unter 18°C", "Genau 20°C", "Über 25°C"], correctAnswer: "Unter 18°C", source: "Gerfried PDF, F5 / Lena PDF S.1 (unterschiedliche Angaben, Gerfried <18, Lena 15-23)" },
+            { question: "Was ist beim Schockfrosten typisch?", options: ["Temperatur von -10°C", "Langsames Einfrieren", "Temperatur von -30°C", "Nur für Gemüse geeignet"], correctAnswer: "Temperatur von -30°C", source: "Gerfried PDF, F5 / Lena PDF S.1" },
+            { question: "Was darf bezüglich der Kühlkette niemals passieren?", options: ["Sie darf kurzzeitig überschritten werden", "Sie darf nie unterbrochen werden", "Sie gilt nur für Fleisch", "Sie ist nur eine Empfehlung"], correctAnswer: "Sie darf nie unterbrochen werden", source: "Gerfried PDF, F5 / Lena PDF S.1/S.4" },
+            { question: "Welche Fischart gehört zu den Rundfischen?", options: ["Scholle", "Seezunge", "Zander", "Heilbutt"], correctAnswer: "Zander", source: "Gerfried PDF, F6 / Lena PDF S.1" },
+            { question: "Welche Fischart gehört zu den Plattfischen?", options: ["Forelle", "Karpfen", "Wels", "Scholle"], correctAnswer: "Scholle", source: "Gerfried PDF, F6 / Lena PDF S.2" },
+            { question: "Wie viele Filets hat ein Plattfisch typischerweise?", options: ["Ein Filet", "Zwei Filets", "Drei Filets", "Vier Filets"], correctAnswer: "Vier Filets", source: "Gerfried PDF, F6 / Lena PDF S.1" },
+            { question: "Welcher Fisch ist ein Wanderfisch?", options: ["Hecht", "Zander", "Lachs", "Kabeljau"], correctAnswer: "Lachs", source: "Gerfried PDF, F6 / Lena PDF S.1" },
+            { question: "Wie lange darf warmes Essen am Buffet maximal stehen, bevor es wieder auf 75°C Kerntemperatur erhitzt werden muss?", options: ["1 Stunde", "2 Stunden", "3 Stunden", "4 Stunden"], correctAnswer: "3 Stunden", source: "Gerfried PDF, F7 / Lena PDF, S.2" },
+            { question: "Welche Konservierungsmethode entzieht Wasser durch Holzrauch?", options: ["Trocknen", "Pasteurisieren", "Räuchern", "Vakuumverpacken"], correctAnswer: "Räuchern", source: "Gerfried PDF, F8 / Lena PDF S.5" },
+            { question: "Welches Teil vom Schwein wird typischerweise für Schnitzel verwendet?", options: ["Bauch", "Schopf", "Nuss (aus dem Schlögel)", "Stelze"], correctAnswer: "Nuss (aus dem Schlögel)", source: "Gerfried PDF, F9 / Lena PDF S.5" },
+            { question: "Wofür wird das lange Karree vom Schwein oft verwendet?", options: ["Gulasch", "Speck", "Koteletts", "Klachelsuppe"], correctAnswer: "Koteletts", source: "Gerfried PDF, F9 / Lena PDF S.5" },
+            { question: "Welcher Teil vom Rind wird als 'Der Englische' bezeichnet?", options: ["Die Schulter", "Der Hals", "Der Rücken", "Der Schlögel"], correctAnswer: "Der Rücken", source: "Gerfried PDF, F10 & F13 / Lena PDF, S.7" },
+            { question: "Wer ist der Stellvertreter des Küchenchefs in einer Küchenbrigade?", options: ["Saucier", "Gardemanger", "Sous Chef", "Patissier"], correctAnswer: "Sous Chef", source: "Gerfried PDF, F11 / Lena PDF S.7" },
+            { question: "Welcher Koch ist für die kalte Küche zuständig?", options: ["Entremetier", "Rotisseur", "Saucier", "Gardemanger"], correctAnswer: "Gardemanger", source: "Gerfried PDF, F11 / Lena PDF S.7" },
+            { question: "Was ist ein Kombidämpfer?", options: ["Ein spezieller Grill", "Ein Heißluftofen mit Dampferzeuger", "Eine Fritteuse mit Deckel", "Ein Gerät zum Vakuumgaren"], correctAnswer: "Ein Heißluftofen mit Dampferzeuger", source: "Gerfried PDF, F12 / Lena PDF S.7" },
+            { question: "Wofür wird der Wadschinken vom Rind typischerweise verwendet?", options: ["Steaks", "Schnitzel", "Gulasch, Ragout", "Suppeneinlage"], correctAnswer: "Gulasch, Ragout", source: "Gerfried PDF, F13 / Lena PDF S.8" },
+            { question: "Welches bekannte Gericht wird aus dem Tafelspitz vom Rind zubereitet?", options: ["Rindsrouladen", "Gekochter Tafelspitz", "Filet Wellington", "Roastbeef"], correctAnswer: "Gekochter Tafelspitz", source: "Gerfried PDF, F13 / Lena PDF S.8" },
+            { question: "Wie heißt der Lungenbraten vom Rind auch?", options: ["Roastbeef", "Entrecote", "Rinderfilet", "Hüftsteak"], correctAnswer: "Rinderfilet", source: "Gerfried PDF, F13 / Lena PDF S.7/S.8" },
+            { question: "Welcher Salat wird typischerweise erst kurz vor dem Service mit Dressing angemacht?", options: ["Kartoffelsalat", "Linsensalat", "Blattsalat", "Fisolensalat"], correctAnswer: "Blattsalat", source: "Gerfried PDF, F14" },
+            { question: "Was bedeutet 'Jus' in der Küche?", options: ["Eine Art dicke Suppe", "Ein spezielles Gewürz", "Bratensaft, Fleischsaft, Fruchtsaft", "Eine Mehlschwitze"], correctAnswer: "Bratensaft, Fleischsaft, Fruchtsaft", source: "Gerfried PDF, F15 / Lena PDF S.13" },
+            { question: "Wann gilt Fleisch als Schlachtfleisch?", options: ["Wenn es von Wildtieren stammt", "Wenn die Tiere von Geburt an für den Verzehr bestimmt sind", "Wenn es älter als 2 Jahre ist", "Wenn es gepökelt wurde"], correctAnswer: "Wenn die Tiere von Geburt an für den Verzehr bestimmt sind", source: "Gerfried PDF, F16 / Lena PDF S.13" },
+            { question: "Dürfen in Österreich Pferde für den menschlichen Verzehr geschlachtet werden?", options: ["Nein, niemals", "Ja, aber nur Fohlen", "Ja, wenn sie als Schlachtfleisch deklariert sind", "Nur mit Sondergenehmigung"], correctAnswer: "Ja, wenn sie als Schlachtfleisch deklariert sind", source: "Gerfried PDF, F17 & F18 / Lena PDF S.13" },
+            { question: "Wie müssen Allergene gekennzeichnet werden?", options: ["Nur mündlich auf Nachfrage", "Gar nicht", "Schriftlich (Speisekarte, Aushang, elektronisch) oder mündlich durch geschulte Person mit schriftl. Hinweis", "Nur durch Symbole"], correctAnswer: "Schriftlich (Speisekarte, Aushang, elektronisch) oder mündlich durch geschulte Person mit schriftl. Hinweis", source: "Gerfried PDF, F19 / Lena PDF S.14" },
+            { question: "Warum ist bei der Verarbeitung von Geflügel besondere Hygiene wichtig?", options: ["Wegen des hohen Fettgehalts", "Wegen der Gefahr von Salmonellen", "Weil es schnell austrocknet", "Weil es teuer ist"], correctAnswer: "Wegen der Gefahr von Salmonellen", source: "Gerfried PDF, F20 / Lena PDF S.14" },
+            { question: "Welche Garmethode findet unter dem Siedepunkt statt?", options: ["Kochen", "Frittieren", "Grillen", "Pochieren"], correctAnswer: "Pochieren", source: "Gerfried PDF, F21" },
+            { question: "Welche Garmethode bedeutet Garen im Fettbad?", options: ["Sautieren", "Backen", "Frittieren", "Dünsten"], correctAnswer: "Frittieren", source: "Gerfried PDF, F21" },
+            { question: "Was bedeutet 'Sous-vide' Garen?", options: ["Grillen über Holzkohle", "Schnelles Anbraten in der Pfanne", "Vakuumgaren bei niedrigen Temperaturen", "Kochen im Dampfdrucktopf"], correctAnswer: "Vakuumgaren bei niedrigen Temperaturen", source: "Gerfried PDF, F21" },
+            { question: "Welches Küchengerät wird zum Überbacken verwendet?", options: ["Kombidämpfer", "Cutter", "Salamander", "Steamer"], correctAnswer: "Salamander", source: "Gerfried PDF, F22 / Lena PDF S.8/S.10" },
+            { question: "Was bedeutet 'Tranchieren'?", options: ["Suppe mit Butter binden", "Fleisch marinieren", "Gegartes Fleisch in Scheiben schneiden", "Speisen überbacken"], correctAnswer: "Gegartes Fleisch in Scheiben schneiden", source: "Gerfried PDF, F23 / Lena PDF S.9" },
+            { question: "Was bedeutet 'Montieren' in Bezug auf Saucen oder Suppen?", options: ["Mit Mehl binden", "Mit Obers und Butter vollenden/schaumig schlagen", "Pürieren", "Klären"], correctAnswer: "Mit Obers und Butter vollenden/schaumig schlagen", source: "Gerfried PDF, F23" },
+            { question: "Welche Teigart wird nicht roh, sondern abgebrannt verarbeitet?", options: ["Blätterteig", "Mürbteig", "Brandteig", "Germteig"], correctAnswer: "Brandteig", source: "Gerfried PDF, F24 / Lena PDF S.18" },
+            { question: "Welche Suppenart wird durch pürierte Zutaten gebunden?", options: ["Einmachsuppe", "Cremesuppe", "Klare Suppe", "Püreesuppe"], correctAnswer: "Püreesuppe", source: "Gerfried PDF, F25 / Lena PDF S.6" },
+            { question: "Was ist eine Consommé double?", options: ["Eine einfache Rindsuppe", "Eine doppelt geklärte Kraftsuppe", "Eine gebundene Gemüsesuppe", "Eine kalte Suppe"], correctAnswer: "Eine doppelt geklärte Kraftsuppe", source: "Gerfried PDF, F25" },
+            { question: "Was ist bei der Menüplangestaltung wichtig?", options: ["Jeden Tag das Gleiche anbieten", "Nur teure Gerichte verwenden", "Abwechslung bei Zutaten und Zubereitungsart", "Nur schnelle Gerichte einplanen"], correctAnswer: "Abwechslung bei Zutaten und Zubereitungsart", source: "Gerfried PDF, F26 / Lena PDF S.11" },
 
-             // --- Questions from new sources (Unique ones added - q11-q78) ---
-             { id: "q11", question: "Welches Merkmal gehört NICHT zur Definition einer gewerblichen Tätigkeit gemäß GewO?", options: [ "Wirtschaftliche Selbständigkeit", "Ertragserzielungsabsicht", "Regelmäßigkeit", "Umweltverträglichkeit" ], correctAnswerIndex: 3 },
-             { id: "q12", question: "Welche Tätigkeit ist eine typische Ausnahme vom Geltungsbereich der Gewerbeordnung?", options: [ "Restaurantbetrieb", "Hotelbetrieb", "Buschenschank/Heuriger", "Café-Konditorei" ], correctAnswerIndex: 2 },
-             { id: "q13", question: "Warum ist eine Werksküche in der Regel keine gewerbliche Einrichtung?", options: [ "Weil sie unregelmäßig betrieben wird", "Weil keine Selbständigkeit vorliegt", "Weil die Ertragserzielungsabsicht fehlt", "Weil nur kalte Speisen angeboten werden" ], correctAnswerIndex: 2 },
-             { id: "q14", question: "Welche Speisen dürfen in einer Buschenschank NICHT verabreicht werden?", options: [ "Kalte bäuerliche Jause", "Warme Speisen und Torten", "Mineralwasser", "Wein aus eigener Erzeugung" ], correctAnswerIndex: 1 },
-             { id: "q15", question: "Unter welcher Bedingung benötigt man für die Privatzimmervermietung KEINE Gewerbeberechtigung?", options: [ "Bis 5 Betten", "Bis 10 Betten und keine familienfremden Arbeitskräfte", "Bis 20 Betten", "Nur wenn Frühstück angeboten wird" ], correctAnswerIndex: 1 },
-             { id: "q16", question: "Welche Behörde ist primär für gewerberechtliche Angelegenheiten im Gastgewerbe zuständig?", options: [ "Finanzamt", "Arbeitsinspektorat", "Bezirksverwaltungsbehörde (BH/Magistrat)", "Gemeindeamt" ], correctAnswerIndex: 2 },
-             { id: "q17", question: "Was prüft die Behörde im Betriebsanlagenverfahren hauptsächlich?", options: [ "Die Einhaltung der Arbeitszeiten", "Mögliche Gefährdungen oder Belästigungen durch die Anlage", "Die Bonität des Betreibers", "Die Qualität der angebotenen Speisen" ], correctAnswerIndex: 1 },
-             { id: "q18", question: "Was bedeutet die Standortgebundenheit eines Gastgewerbes?", options: [ "Man darf nur regionale Produkte verkaufen", "Die Berechtigung gilt nur für den in GISA erfassten Standort", "Man muss am Standort wohnen", "Der Standort darf nicht gewechselt werden" ], correctAnswerIndex: 1 },
-             { id: "q19", question: "Wofür haftet der gewerberechtliche Geschäftsführer gegenüber der Behörde?", options: [ "Für den wirtschaftlichen Erfolg", "Für die fachlich einwandfreie Ausübung", "Für die Einhaltung der gewerberechtlichen Vorschriften", "Für die Zufriedenheit der Gäste" ], correctAnswerIndex: 2 },
-             { id: "q20", question: "Welche Vorschrift muss im Gastgewerbebetrieb für Gäste ersichtlich ausgehängt sein?", options: [ "Kollektivvertrag", "Arbeitsvertrag des Chefs", "Jugendschutzvorschriften", "Preisliste der Lieferanten" ], correctAnswerIndex: 2 },
-             { id: "q21", question: "Was müssen Schankgefäße aufweisen?", options: [ "Nur das Logo des Betriebs", "Inhaltsbezeichnung, Füllstrich, Herstellerzeichen", "Nur den Füllstrich", "Nur die Inhaltsbezeichnung in Liter" ], correctAnswerIndex: 1 },
-             { id: "q22", question: "Was ist bei 'Jugendgetränken' auf der Karte zu beachten?", options: [ "Sie müssen teurer sein als Bier", "Es muss nur ein Saft angeboten werden", "Mind. 2, Preis nicht höher als günstigstes Alkoholisches, hervorgehoben", "Sie dürfen nur bis 22 Uhr verkauft werden" ], correctAnswerIndex: 2 },
-             { id: "q23", question: "Wo müssen Preise für Speisen und Getränke ausgezeichnet sein?", options: [ "Nur auf Nachfrage", "In Preisverzeichnissen (Speisekarten)", "Nur am Eingang", "Nur auf der Webseite" ], correctAnswerIndex: 1 },
-             { id: "q24", question: "Welche Ausnahme vom Rauchverbot gilt in der Gastronomie?", options: [ "In kleinen Betrieben darf geraucht werden", "Nur in Bars nach 22 Uhr", "Auf Freiflächen", "Wenn der Wirt es erlaubt" ], correctAnswerIndex: 2 },
-             { id: "q25", question: "Innerhalb welcher Frist muss ein Gast im Beherbergungsbetrieb gemeldet werden?", options: [ "Innerhalb einer Woche", "Innerhalb von 48 Stunden", "Sofort, spätestens innerhalb von 24 Stunden", "Bei der Abreise" ], correctAnswerIndex: 2 },
-             { id: "q26", question: "Was versteht man unter Verabreichung und Ausschank im Gastgewerbe?", options: [ "Nur den Verkauf von Speisen zum Mitnehmen", "Nur den Verkauf von Getränken über die Theke", "Ausgabe von Speisen/Getränken inkl. Service zum Konsum vor Ort", "Nur die Beherbergung von Gästen" ], correctAnswerIndex: 2 },
-             { id: "q27", question: "Was ist bei der Ausübung des 'Gästewagengewerbes' zu beachten?", options: [ "Es ist keine eigene Bewilligung nötig", "Fahrten dürfen nur kostenlos angeboten werden", "Fahrzeug muss gekennzeichnet sein und Lenkprotokoll geführt werden", "Es dürfen nur Fahrten zum Bahnhof angeboten werden" ], correctAnswerIndex: 2 },
-             { id: "q28", question: "Wann verstößt ein Gastwirt gegen das Benachteiligungsverbot?", options: [ "Wenn er unterschiedliche Preise für Stammgäste hat", "Wenn er Gäste wegen ihrer Hautfarbe abweist", "Wenn er keine Kreditkarten akzeptiert", "Wenn er bestimmte Speisen nicht anbietet" ], correctAnswerIndex: 1 },
-             { id: "q29", question: "Was ist bei der Durchführung von Veranstaltungen zu beachten?", options: [ "Keine Anmeldung erforderlich", "Immer bei der Polizei melden", "Sind bewilligungs- oder anmeldepflichtig bei der zuständigen Behörde", "Nur bei Musikdarbietungen meldepflichtig" ], correctAnswerIndex: 2 },
-             { id: "q30", question: "Wie sind die Preise in Preisverzeichnissen anzugeben?", options: [ "Nettopreise ohne Steuer", "Nur Richtpreise", "Inklusivpreise (Brutto) in Euro", "Preise pro 100 Gramm" ], correctAnswerIndex: 2 },
-             { id: "q31", question: "Was ist KEIN persönlicher Ausschlussgrund für die Eröffnung eines Gastgewerbes?", options: [ "Volljährigkeit", "Vorstrafen wegen Betrugs", "Ein nicht kostendeckendes Insolvenzverfahren", "Vergehen gegen das Suchtmittelgesetz" ], correctAnswerIndex: 0 }, // Volljährigkeit ist Voraussetzung, kein Ausschlussgrund
-             { id: "q32", question: "Welche Erleichterung gibt es im Betriebsanlagenverfahren für kleine Gastronomiebetriebe?", options: [ "Keine Genehmigung nötig", "Vereinfachtes Verfahren (eingeschränkte Parteistellung der Nachbarn)", "Keine Prüfung der Lärmbelästigung", "Genehmigung durch die Gemeinde statt BH" ], correctAnswerIndex: 1 },
-             { id: "q33", question: "Wer kann im Betriebsanlagenverfahren neben Nachbarn Rechte geltend machen?", options: [ "Die Wirtschaftskammer", "Das Finanzamt", "Das Arbeitsinspektorat", "Der Bürgermeister" ], correctAnswerIndex: 2 },
-             { id: "q34", question: "Wann darf mit der Ausübung eines angemeldeten Gewerbes begonnen werden?", options: [ "Erst nach Erhalt des Gewerbescheins", "Sobald alle Anmeldeunterlagen vollständig eingelangt sind", "Nach 4 Wochen Wartefrist", "Erst nach Genehmigung der Betriebsanlage" ], correctAnswerIndex: 1 },
-             { id: "q35", question: "Unter welcher Bedingung darf ein Gastwirt vorübergehend außerhalb seines Standorts tätig werden?", options: [ "Nie", "Nur zum Verkauf von Getränken", "Bei besonderen Gelegenheiten (z.B. Volksfest, Veranstaltung)", "Nur im Umkreis von 1 km" ], correctAnswerIndex: 2 },
-             { id: "q36", question: "Was bestimmt die 'Betriebsart' eines Gastgewerbes?", options: [ "Die Rechtsform des Unternehmens", "Den Standort des Betriebs", "Den Leistungsumfang, zu dem der Betrieb berechtigt ist", "Die Anzahl der Mitarbeiter" ], correctAnswerIndex: 2 },
-             { id: "q37", question: "Wann kann die Gewerbebehörde die Gewerbeberechtigung entziehen?", options: [ "Bei schlechten Kundenbewertungen", "Bei Vorliegen von Ausschlussgründen oder schweren Verstößen", "Wenn der Umsatz sinkt", "Auf Wunsch der Konkurrenz" ], correctAnswerIndex: 1 },
-             { id: "q38", question: "Welches Recht gehört zu den Nebenrechten des Gastgewerbes?", options: [ "Verkauf von Autos", "Betrieb einer Diskothek", "Anfertigung von im Betrieb benötigten Werkzeugen", "Anbieten von Bankdienstleistungen" ], correctAnswerIndex: 2 },
-             { id: "q39", question: "Welche Sanktionen sieht das Tabakgesetz bei Verstößen für Betreiber vor?", options: [ "Verwarnung", "Betriebsschließung", "Geldstrafen (z.B. 2.000 bis 10.000 Euro)", "Entzug der Gewerbeberechtigung" ], correctAnswerIndex: 2 },
-             { id: "q40", question: "Welchen Anspruch hat ein Arbeitnehmer bezüglich des Rauchens am Arbeitsplatz?", options: [ "Anspruch auf einen Raucherraum", "Anspruch auf bezahlte Rauchpausen", "Anspruch auf einen rauchfreien Arbeitsplatz", "Keinen besonderen Anspruch" ], correctAnswerIndex: 2 },
-             { id: "q41", question: "Welche Daten eines ausländischen Gastes müssen zusätzlich auf dem Meldezettel angegeben werden?", options: [ "Beruf", "Lieblingsessen", "Art und Nummer des Reisedokuments", "Grund des Aufenthalts" ], correctAnswerIndex: 2 },
-             { id: "q42", question: "Wie lange müssen Gästeblätter aufbewahrt werden?", options: [ "1 Jahr", "3 Jahre", "7 Jahre", "10 Jahre" ], correctAnswerIndex: 2 },
-             { id: "q43", question: "Welche Gesetze sind typischerweise 'aushangpflichtige Gesetze' im Betrieb?", options: [ "Nur das Angestelltengesetz", "Gesetze wie Arbeitszeitgesetz, Urlaubsgesetz etc.", "Nur der Kollektivvertrag", "Nur die Gewerbeordnung" ], correctAnswerIndex: 1 },
-             { id: "q44", question: "Wo hat die Unterscheidung zwischen Arbeitern und Angestellten heute noch praktische Bedeutung?", options: [ "Bei der Kündigungsfrist", "Bei den Anspruchsvoraussetzungen für Sonderzahlungen", "Beim Urlaubsanspruch", "Bei der Arbeitszeit" ], correctAnswerIndex: 1 },
-             { id: "q45", question: "Was ist der Unterschied zwischen Ferialpraktikanten und Ferialarbeitern?", options: [ "Kein Unterschied", "Praktikanten lernen, Arbeiter arbeiten nur", "Pflichtpraktikanten sind im Rahmen der Ausbildung tätig (Bezahlung nach KV wie Lehrlinge)", "Ferialarbeiter sind immer geringfügig beschäftigt" ], correctAnswerIndex: 2 }, // Fokus auf Pflichtpraktikanten
-             { id: "q46", question: "Welche Entschädigung steht Pflichtpraktikanten nach Kollektivvertrag zu?", options: [ "Keine", "Ein Taschengeld nach Ermessen", "Entgelt in Höhe des Lehrlingseinkommens des entsprechenden Schuljahres", "Mindestlohn für Hilfskräfte" ], correctAnswerIndex: 2 },
-             { id: "q47", question: "Welche Behörde ist für die Durchsetzung arbeitsrechtlicher Ansprüche zuständig?", options: [ "Wirtschaftskammer", "Finanzamt", "Arbeitsgericht", "Gemeinde" ], correctAnswerIndex: 2 },
-             { id: "q48", question: "Was ist beim Abschluss von Lehrverträgen besonders zu beachten?", options: [ "Sie können mündlich sein", "Sie müssen schriftlich sein und ggf. Zustimmung des gesetzl. Vertreters haben", "Die Probezeit beträgt nur 1 Monat", "Sie sind immer unbefristet" ], correctAnswerIndex: 1 },
-             { id: "q49", question: "Was passiert, wenn ein befristetes Dienstverhältnis nach Ablauf um mehr als 4 Wochen fortgesetzt wird?", options: [ "Es endet automatisch", "Es muss ein neuer befristeter Vertrag abgeschlossen werden", "Es geht automatisch in ein unbefristetes Verhältnis über", "Der Mitarbeiter erhält eine Abfertigung" ], correctAnswerIndex: 2 },
-             // q50 (Meldeverpflichtung Neueinstellung) already covered
-             { id: "q51", question: "Für welche Dienstverhältnisse gilt die 'Abfertigung Neu'?", options: [ "Nur für Angestellte", "Nur für Arbeiter", "Für alle ab 2003 begonnenen Dienstverhältnisse", "Nur für Führungskräfte" ], correctAnswerIndex: 2 }, // Vereinfacht
-             { id: "q52", question: "Welchen Vorteil bietet die Durchrechnung der Arbeitszeit?", options: [ "Weniger Dokumentationsaufwand", "Ausgleich von arbeitsintensiven und ruhigeren Perioden ohne sofortige Überstundenzuschläge", "Kürzere Kündigungsfristen", "Höherer Urlaubsanspruch" ], correctAnswerIndex: 1 },
-             { id: "q53", question: "Wie dürfen Jugendliche am Wochenende beschäftigt werden?", options: [ "Gar nicht", "Jeden Sonntag", "Nur jeden zweiten Sonntag oder blockweise (max. 3)", "Nur mit Zustimmung der Eltern" ], correctAnswerIndex: 2 },
-             { id: "q54", question: "Welche Aufzeichnungspflicht hat der Arbeitgeber bezüglich des Urlaubs?", options: [ "Keine", "Nur den Gesamtanspruch", "Anspruch, Verbrauch, Entgelt und Anrechnung von Vordienstzeiten", "Nur die genommenen Urlaubstage" ], correctAnswerIndex: 2 },
-             { id: "q55", question: "Wie viele Überstunden sind pro Woche maximal zulässig (gesetzl. Höchstgrenze)?", options: [ "5 Stunden", "10 Stunden", "20 Stunden", "Es gibt keine Grenze" ], correctAnswerIndex: 2 }, // AZG erlaubt 20 pro Woche bzw. 60 gesamt
-             { id: "q56", question: "Wie wird die Arbeit an einem Feiertag zusätzlich entlohnt?", options: [ "Gar nicht extra", "Mit einem freien Tag", "Mit Feiertagsarbeitsentgelt", "Mit doppeltem Lohn" ], correctAnswerIndex: 2 },
-             { id: "q57", question: "Welcher Zuschlag fällt bei Mehrarbeit von Teilzeitkräften an?", options: [ "Keiner", "10%", "25%", "50%" ], correctAnswerIndex: 2 },
-             { id: "q58", question: "Bei welcher Gruppe besteht ein besonderer Kündigungsschutz?", options: [ "Sportler", "Studenten", "Schwangere und Mütter/Väter in Karenz", "Pensionisten" ], correctAnswerIndex: 2 },
-             { id: "q59", question: "Was muss ein Lohnzettel unter anderem enthalten?", options: [ "Nur den Nettobetrag", "Bruttolohn, Abzüge (SV, LSt), Zuschläge, Nettoauszahlung", "Nur die Arbeitsstunden", "Nur Name und Adresse" ], correctAnswerIndex: 1 },
-             { id: "q60", question: "Welchen Anspruch hat ein Arbeitnehmer bei Beendigung neben Lohn/Gehalt noch?", options: [ "Dienstwagen", "Urlaubsersatzleistung, anteilige Sonderzahlungen, ggf. Abfertigung", "Lebenslange Gratis-Verpflegung", "Firmenanteile" ], correctAnswerIndex: 1 },
-             { id: "q61", question: "Was versteht man unter Deliktsfähigkeit?", options: [ "Die Fähigkeit, Verträge abzuschließen", "Die Fähigkeit, für rechtswidriges Verhalten zur Verantwortung gezogen zu werden", "Die Fähigkeit, zu wählen", "Die Fähigkeit, Auto zu fahren" ], correctAnswerIndex: 1 },
-             { id: "q62", question: "Welche Verträge dürfen 14- bis 18-Jährige NICHT ohne Zustimmung abschließen?", options: [ "Kauf eines Kaugummis", "Annahme eines Geldgeschenks", "Lehrvertrag", "Ratenkaufverträge" ], correctAnswerIndex: 3 }, // Oder Dienstleistungen, die Lebensstandard übersteigen
-             { id: "q63", question: "Was ist KEINE Voraussetzung für einen gültigen Vertragsabschluss?", options: [ "Übereinstimmende Willenserklärung", "Handlungsfähigkeit der Partner", "Schriftform", "Möglichkeit und Erlaubtheit des Inhalts" ], correctAnswerIndex: 2 }, // Schriftform nicht immer nötig
-             { id: "q64", question: "Was ist ein Anbot im vertragsrechtlichen Sinn?", options: [ "Eine unverbindliche Anfrage", "Werbung in der Zeitung", "Ein konkreter Vorschlag, der nur noch angenommen werden muss", "Eine Preisliste" ], correctAnswerIndex: 2 },
-             { id: "q65", question: "Was regelt das Kooperationsabkommen zwischen Hotels und Reisebüros?", options: [ "Die Zimmerpreise für Endkunden", "Usancen im Geschäftsverkehr (Reservierung, Zahlung, Storno etc.)", "Die Ausbildung von Reisebüromitarbeitern", "Die Marketingstrategien der Hotels" ], correctAnswerIndex: 1 },
-             { id: "q66", question: "Unter welchen Umständen haftet ein Beherberger unbeschränkt für eingebrachte Sachen des Gastes?", options: [ "Nie", "Nur für Geld und Schmuck", "Bei Verschulden des Wirts oder ausdrücklich zur Verwahrung übergebenen Sachen", "Nur bis 100 Euro" ], correctAnswerIndex: 2 },
-             { id: "q67", question: "Welche neue Gesellschaftsform wurde in Österreich eingeführt (ähnlich einer 'kleinen GmbH')?", options: [ "Verein", "Stiftung", "Flexible Kapitalgesellschaft (FlexKapG/FlexCo)", "Genossenschaft" ], correctAnswerIndex: 2 },
-             { id: "q68", question: "Welcher Aspekt wird durch die Rechtsform eines Unternehmens maßgeblich beeinflusst?", options: [ "Die Speisekarte", "Die Öffnungszeiten", "Haftung, Vertretung, Steuern", "Die Farbe der Tischdecken" ], correctAnswerIndex: 2 },
-             { id: "q69", question: "Welche Gesellschaftsform eignet sich oft gut für Kleinunternehmen?", options: [ "Aktiengesellschaft (AG)", "Offene Gesellschaft (OG)", "Einzelunternehmen oder FlexCo", "Kommanditgesellschaft (KG)" ], correctAnswerIndex: 2 },
-             { id: "q70", question: "Erklären Sie das Prinzip des Vorsteuerabzugs.", options: [ "Unternehmer zahlen keine Umsatzsteuer", "Nur Endverbraucher zahlen Umsatzsteuer", "Unternehmer können die an Lieferanten gezahlte USt von ihrer USt-Schuld abziehen", "Die Steuer wird erst am Jahresende berechnet" ], correctAnswerIndex: 2 },
-             { id: "q71", question: "Welcher Umsatzsteuersatz gilt für Wein ab Hof Verkauf?", options: [ "0%", "10%", "13%", "20%" ], correctAnswerIndex: 2 },
-             { id: "q72", question: "Was versteht man unter Eigenverbrauch im steuerlichen Sinn?", options: [ "Der Kauf von Waren für den Privatgebrauch", "Die private Nutzung von betrieblichen Gegenständen oder Leistungen", "Der Verbrauch von selbst angebautem Gemüse", "Das Essen von Resten durch Mitarbeiter" ], correctAnswerIndex: 1 },
-             { id: "q73", question: "Was ist KEIN durchlaufender Posten bei der Umsatzsteuer?", options: [ "Kurtaxe", "Trinkgeld", "Vom Gast bezahlte Parkgebühren (weiterverrechnet)", "Umsatzsteuer auf verkaufte Speisen" ], correctAnswerIndex: 3 }, // USt ist Teil des Entgelts
-             { id: "q74", question: "Wo ist die Umsatzsteuer hauptsächlich einzuzahlen?", options: [ "Bei der Gemeinde", "Bei der Wirtschaftskammer", "Beim Finanzamt", "Bei der Sozialversicherung" ], correctAnswerIndex: 2 },
-             { id: "q75", question: "Wie werden Frühstücksgetränke bei einem Pauschalpreis (z.B. Zimmer mit Frühstück) umsatzsteuerlich behandelt?", options: [ "Immer 20%", "Gar nicht besteuert", "Mit 10% als Teil der Beherbergungsleistung", "Mit 13%" ], correctAnswerIndex: 2 },
-             { id: "q76", question: "Wer ist typischerweise bei der SVS pflichtversichert?", options: [ "Angestellte Köche", "Geringfügig Beschäftigte", "Einzelunternehmer und persönlich haftende Gesellschafter", "Lehrlinge" ], correctAnswerIndex: 2 },
-             { id: "q77", question: "Wann beginnt die Pflichtversicherung bei der SVS?", options: [ "Am 1. Jänner des Jahres", "Nach einem Monat Tätigkeit", "Mit dem Tag der Gewerbeanmeldung/Rechtskraft der Berechtigung", "Erst nach dem ersten Geschäftsjahr" ], correctAnswerIndex: 2 },
-             { id: "q78", question: "Gibt es eine Möglichkeit für Selbständige, sich freiwillig gegen Arbeitslosigkeit zu versichern?", options: [ "Nein, nur für Angestellte", "Ja, unter bestimmten Voraussetzungen", "Nur wenn sie vorher arbeitslos waren", "Nur für Künstler" ], correctAnswerIndex: 1 },
+            // Getränkekunde Block (Gerfried PDF / Lena PDF)
+            { question: "Welche Weinkategorien gibt es in der Wachau DAC?", options: ["Classic, Reserve", "Kabinett, Spätlese, Auslese", "Steinfeder, Federspiel, Smaragd", "Ortswein, Lagenwein"], correctAnswer: "Steinfeder, Federspiel, Smaragd", source: "Gerfried PDF, F27 / Lena PDF S.14" },
+            { question: "Welche Rebsorte ist typisch für das Weinviertel DAC?", options: ["Riesling", "Zweigelt", "Grüner Veltliner", "Sauvignon Blanc"], correctAnswer: "Grüner Veltliner", source: "Gerfried PDF, F27 / Lena PDF S.9" },
+            { question: "Welche Rebsorte ist charakteristisch für den Schilcher aus der Weststeiermark DAC?", options: ["Sauvignon Blanc", "Blauer Wildbacher", "Welschriesling", "Morillon"], correctAnswer: "Blauer Wildbacher", source: "Gerfried PDF, F27 / Lena PDF S.5" },
+            { question: "Welche Kaffeesorte wird eher für Espresso verwendet und wächst im Tiefland?", options: ["Arabica", "Liberica", "Robusta", "Maragogype"], correctAnswer: "Robusta", source: "Gerfried PDF, F28 / Lena PDF S.2-3/S.10" },
+            { question: "Welche Teeart ist vollfermentiert?", options: ["Grüner Tee", "Weißer Tee", "Schwarzer Tee", "Oolong Tee"], correctAnswer: "Schwarzer Tee", source: "Gerfried PDF, F28 / Lena PDF S.2" },
+            { question: "Was ist ein typischer Aperitif?", options: ["Whisky", "Süßer Likör", "Schaumwein", "Cognac"], correctAnswer: "Schaumwein", source: "Gerfried PDF, F29 / Lena PDF S.3" },
+            { question: "Was ist ein typischer Digestif?", options: ["Gin Tonic", "Bier", "Destillate (z.B. Obstbrand)", "Weißwein"], correctAnswer: "Destillate (z.B. Obstbrand)", source: "Gerfried PDF, F29 / Lena PDF S.3" },
+            { question: "Was passiert beim Maischen im Brauvorgang?", options: ["Hopfen wird hinzugefügt", "Hefe wird hinzugefügt", "Geschrotetes Malz wird mit Wasser angereichert", "Das Bier wird gekühlt"], correctAnswer: "Geschrotetes Malz wird mit Wasser angereichert", source: "Gerfried PDF, F30 / Lena PDF S.3" },
+            { question: "Bei welcher Temperatur gärt obergäriges Bier typischerweise?", options: ["0-5°C", "5-9°C", "10-14°C", "15-20°C"], correctAnswer: "15-20°C", source: "Gerfried PDF, F30 / Lena PDF S.10" },
+            { question: "Welches Bier ist ein Beispiel für ein untergäriges Bier?", options: ["Weizenbier", "Englisches Ale", "Märzen/Lager", "Deutsches Altbier"], correctAnswer: "Märzen/Lager", source: "Gerfried PDF, F30 / Lena PDF S.10" },
+            { question: "Welche Biersorte wird typischerweise nicht filtriert?", options: ["Pils", "Märzen", "Zwickel", "Bockbier"], correctAnswer: "Zwickel", source: "Gerfried PDF, F30 / Lena PDF S.12" },
+            { question: "Welche der folgenden ist eine autochthone weiße Rebsorte Österreichs?", options: ["Chardonnay", "Sauvignon Blanc", "Rotgipfler", "Merlot"], correctAnswer: "Rotgipfler", source: "Gerfried PDF, F31" },
+            { question: "Welche der folgenden ist eine internationale rote Rebsorte, die in Österreich angebaut wird?", options: ["Zweigelt", "Blaufränkisch", "St. Laurent", "Cabernet Sauvignon"], correctAnswer: "Cabernet Sauvignon", source: "Gerfried PDF, F31" },
+            { question: "Was unterscheidet Mineralwasser von Trinkwasser?", options: ["Mineralwasser enthält immer Kohlensäure", "Mineralwasser muss am Ursprungsort abgefüllt werden und hat oft einen höheren Mineralstoffgehalt", "Trinkwasser ist immer weich", "Mineralwasser darf nicht zum Kochen verwendet werden"], correctAnswer: "Mineralwasser muss am Ursprungsort abgefüllt werden und hat oft einen höheren Mineralstoffgehalt", source: "Gerfried PDF, F32 / Lena PDF S.6" },
+            { question: "Was ist der Mindest-Fruchtsaftanteil bei Fruchtsaftlimonaden?", options: ["5%", "10%", "25%", "50%"], correctAnswer: "10%", source: "Gerfried PDF, F33 / Lena PDF S.6/S.9" },
+            { question: "Was enthalten Cola-Limonaden typischerweise?", options: ["Nur Fruchtzucker", "Chinin", "Koffein und Phosphorsäure", "Elektrolyte"], correctAnswer: "Koffein und Phosphorsäure", source: "Gerfried PDF, F33 / Lena PDF S.7" },
+            { question: "Warum wird Wein bei der Produktion geschwefelt (Sulfite)?", options: ["Um die Farbe zu intensivieren", "Um den Alkoholgehalt zu erhöhen", "Um ihn vor Oxidation und Mikroorganismen zu schützen", "Um ihn süßer zu machen"], correctAnswer: "Um ihn vor Oxidation und Mikroorganismen zu schützen", source: "Gerfried PDF, F34 / Lena PDF S.14" },
+            { question: "Welches Land gehört zu den Weinbauländern der 'Neuen Welt'?", options: ["Frankreich", "Italien", "Spanien", "Chile"], correctAnswer: "Chile", source: "Gerfried PDF, F35 / Lena PDF S.8" },
+            { question: "Welches Prädikat erfordert das höchste Mindestmostgewicht (KMW)?", options: ["Spätlese", "Auslese", "Beerenauslese", "Trockenbeerenauslese"], correctAnswer: "Trockenbeerenauslese", source: "Gerfried PDF, F36 / Lena PDF S.13" },
+            { question: "Was ist eine Voraussetzung für Eiswein?", options: ["Die Trauben müssen Edelfäule haben", "Die Trauben müssen während der Lese und Verarbeitung gefroren sein", "Nur rote Trauben dürfen verwendet werden", "Der Wein muss im Barrique reifen"], correctAnswer: "Die Trauben müssen während der Lese und Verarbeitung gefroren sein", source: "Gerfried PDF, F36" },
+            { question: "Woher muss Champagner stammen?", options: ["Aus ganz Frankreich", "Aus der Champagne", "Aus Italien", "Aus Spanien"], correctAnswer: "Aus der Champagne", source: "Gerfried PDF, F37 / Lena PDF S.14" },
+            { question: "Welche Gärmethode ist typisch für Champagner?", options: ["Tankgärung", "Flaschengärung (zweite Gärung in der Flasche)", "Transvasierverfahren", "Karbonisierung"], correctAnswer: "Flaschengärung (zweite Gärung in der Flasche)", source: "Gerfried PDF, F37 / Lena PDF S.14" },
+            { question: "Was bedeutet 'Degorgieren' bei der Champagnerherstellung?", options: ["Das Hinzufügen von Zucker", "Das Rütteln der Flaschen", "Das Entfernen des Hefe-Pfropfens", "Das Verkorken der Flasche"], correctAnswer: "Das Entfernen des Hefe-Pfropfens", source: "Gerfried PDF, F37 / Lena PDF S.14" },
+            { question: "Welche Serviertemperatur wird für die meisten Weißweine empfohlen?", options: ["0-4°C", "6-8°C", "8-10°C (manchmal bis 12°C)", "14-18°C"], correctAnswer: "8-10°C (manchmal bis 12°C)", source: "Gerfried PDF, F38 / Lena PDF S.11" },
+            { question: "Welche Serviertemperatur wird für die meisten Rotweine empfohlen?", options: ["6-8°C", "8-10°C", "10-14°C", "14-18°C"], correctAnswer: "14-18°C", source: "Gerfried PDF, F38 / Lena PDF S.11" },
+            { question: "Was ist der Unterschied zwischen Fruchtsaft und Fruchtnektar?", options: ["Nektar hat immer Kohlensäure", "Saft hat 100% Fruchtanteil, Nektar weniger (25-50%)", "Nektar ist immer dickflüssiger", "Saft darf Zucker zugesetzt werden, Nektar nicht"], correctAnswer: "Saft hat 100% Fruchtanteil, Nektar weniger (25-50%)", source: "Gerfried PDF, F39 / Lena PDF S.11" },
 
-             // --- Questions from latest source (Teil 1-4) ---
-             { id: "q79", question: "Was ist eine außerordentliche Beendigung des Dienstverhältnisses durch den Arbeitgeber aus wichtigem Grund?", options: [ "Ordentliche Kündigung", "Einvernehmliche Lösung", "Entlassung", "Vorzeitiger Austritt" ], correctAnswerIndex: 2 },
-             // q80 (Dienstzettel vs Vertrag) already covered conceptually
-             // q81 (Aushangpflichtige Gesetze) already covered
-             { id: "q82", question: "Welche Desinfektionsart verwendet Heißwasser oder Dampf?", options: [ "Chemische Desinfektion", "Thermische Desinfektion", "UV-Desinfektion", "Manuelle Desinfektion" ], correctAnswerIndex: 1 },
-             { id: "q83", question: "Was ist die wichtigste Grundregel vor dem Desinfizieren?", options: [ "Einwirkzeit verkürzen", "Mittel höher dosieren", "Oberfläche trocknen lassen", "Zuerst reinigen" ], correctAnswerIndex: 3 },
-             { id: "q84", question: "Welches Teil vom Schwein wird typischerweise für Schnitzel oder Kotelett verwendet?", options: [ "Schulter (Schopf)", "Bauch (Wammerl)", "Rücken (Karree)", "Stelze" ], correctAnswerIndex: 2 },
-             { id: "q85", question: "Welches Rindfleischteil wird klassisch für das Gericht 'Tafelspitz' verwendet?", options: [ "Filet", "Beiried", "Tafelspitz (Schwanzstück)", "Wadschinken" ], correctAnswerIndex: 2 },
-             { id: "q86", question: "Bei welcher Temperatur gärt die Hefe bei untergärigen Bieren (z.B. Lager)?", options: [ "0-4°C", "6-9°C", "18-24°C", "Über 30°C" ], correctAnswerIndex: 1 },
-             { id: "q87", question: "Welche Buffetart zeichnet sich dadurch aus, dass Häppchen von Servicekräften herumgetragen werden?", options: [ "Frühstücksbuffet", "Themenbuffet", "Flying Buffet", "Frontcooking-Buffet" ], correctAnswerIndex: 2 },
-             { id: "q88", question: "Wofür wird ein 'Salamander' in der Küche hauptsächlich verwendet?", options: [ "Zum Kochen von Suppen", "Zum Garen von Gemüse", "Zum Gratinieren und Überbacken (Oberhitze)", "Zum Warmhalten von Tellern" ], correctAnswerIndex: 2 },
-             { id: "q89", question: "Was ist der Hauptunterschied zwischen einer Marinade und einem Dressing?", options: [ "Marinade ist warm, Dressing kalt", "Marinade nur für Fleisch, Dressing nur für Salat", "Dressing enthält zusätzlich Joghurt/Obers oder Mayonnaise", "Kein Unterschied" ], correctAnswerIndex: 2 },
-             { id: "q90", question: "Welche Temperaturzone ist für die Lagerung von Frischfisch ideal?", options: [ "-5°C", "0 bis +2°C", "+4 bis +6°C", "+8 bis +10°C" ], correctAnswerIndex: 1 },
-             { id: "q91", question: "Was ist eine wichtige Maßnahme bei der Geflügelverarbeitung zur Vermeidung von Kreuzkontamination?", options: [ "Fleisch waschen", "Eigene Schneidebretter verwenden", "Bei Raumtemperatur auftauen", "Nur tiefgekühlt verarbeiten" ], correctAnswerIndex: 1 },
-             { id: "q92", question: "Was sollte bei der Warenannahme von Lebensmitteln geprüft werden?", options: [ "Nur der Preis", "Nur die Menge", "Temperatur, Verpackung, MHD, Zustand, Lieferschein", "Nur das Aussehen" ], correctAnswerIndex: 2 },
-             { id: "q93", question: "Wie lange muss die Ruhepause bei einer Arbeitszeit von mehr als 6 Stunden mindestens sein?", options: [ "15 Minuten", "30 Minuten", "45 Minuten", "60 Minuten" ], correctAnswerIndex: 1 },
-             { id: "q94", question: "Was ist die Hauptaufgabe eines Sous Chefs?", options: [ "Desserts zubereiten", "Geschirr spülen", "Stellvertreter des Küchenchefs", "Serviceleitung" ], correctAnswerIndex: 2 },
-             { id: "q95", question: "Welche Teigart wird typischerweise für Buchteln verwendet?", options: [ "Mürbteig", "Germteig (Hefeteig)", "Blätterteig", "Brandteig" ], correctAnswerIndex: 1 },
-             { id: "q96", question: "Was ist eine typische Beilage zu Schweinsbraten?", options: [ "Reis", "Pommes Frites", "Semmelknödel und Sauerkraut", "Nudelsalat" ], correctAnswerIndex: 2 },
-             { id: "q97", question: "Welche dieser Betriebsarten gehört NICHT typischerweise zum Gastgewerbe?", options: [ "Restaurant", "Bar", "Hotel", "Einzelhandel (Kleidung)" ], correctAnswerIndex: 3 },
-             { id: "q98", question: "Was ist ein wichtiger erster Schritt bei der Eventorganisation?", options: [ "Musik auswählen", "Dekoration kaufen", "Anlass & Zielgruppe klären", "Getränke bestellen" ], correctAnswerIndex: 2 },
-             { id: "q99", question: "Welches Glas wird typischerweise für Whisky verwendet?", options: [ "Sektflöte", "Weißweinglas", "Tumbler", "Longdrinkglas" ], correctAnswerIndex: 2 },
-             { id: "q100", question: "Wie heißt der Schritt bei der traditionellen Flaschengärung (Champagner), bei dem die Hefe entfernt wird?", options: [ "Rütteln", "Dosage", "Degorgieren", "Versektung" ], correctAnswerIndex: 2 },
-             { id: "q101", question: "Innerhalb welcher Frist muss bei Zahlungsunfähigkeit eines Betriebs Insolvenz angemeldet werden?", options: [ "Sofort", "14 Tage", "60 Tage", "90 Tage" ], correctAnswerIndex: 2 },
-             { id: "q102", question: "Wie muss Altöl aus einer Fritteuse entsorgt werden?", options: [ "Im Restmüll", "Im Abfluss", "Fachgerecht über Sammelstelle/Entsorger", "Verbrennen" ], correctAnswerIndex: 2 },
-             { id: "q103", question: "Was ist der Hauptunterschied zwischen Fruchtsaft und Fruchtnektar?", options: [ "Nektar hat mehr Zucker", "Saft ist immer frisch gepresst", "Der Fruchtgehalt (Saft 100%, Nektar 25-50%)", "Nektar ist immer trüb" ], correctAnswerIndex: 2 },
-             { id: "q104", question: "Was ist der Unterschied zwischen einem freien und einem reglementierten Gewerbe?", options: [ "Freies Gewerbe ist kostenlos", "Reglementiertes Gewerbe erfordert einen Befähigungsnachweis", "Freies Gewerbe nur online", "Reglementiertes Gewerbe nur für große Firmen" ], correctAnswerIndex: 1 },
-             { id: "q105", question: "Was ist ein 'Jus' in der Küche?", options: [ "Eine Cremesuppe", "Ein Fruchtsaft", "Ein kräftiger Bratensaft", "Eine Mehlspeise" ], correctAnswerIndex: 2 },
-             { id: "q106", question: "Was bedeutet die Abkürzung 'COS' im Gastgewerbe?", options: [ "Chef on Stage", "Cost of Service", "Cost of Sales (Wareneinsatz)", "Customer Order System" ], correctAnswerIndex: 2 },
-             { id: "q107", question: "Was ist KEINE Zutat einer klassischen Consommé (laut Beschreibung)?", options: [ "Rindfleisch", "Wurzelgemüse", "Eiweiß zum Klären", "Sahne (Obers)" ], correctAnswerIndex: 3 }
+            // Servierkunde Block (Gerfried PDF / Lena PDF)
+            { question: "Was ist ein Amuse-Gueule?", options: ["Die Hauptspeise", "Ein warmer Gruß aus der Küche", "Ein kalter Gruß aus der Küche", "Das Dessert"], correctAnswer: "Ein kalter Gruß aus der Küche", source: "Gerfried PDF, F40" },
+            { question: "In welcher Reihenfolge erscheinen Suppe und warme Vorspeise typischerweise in einem Menü?", options: ["Warme Vorspeise, dann Suppe", "Suppe, dann warme Vorspeise", "Gleichzeitig", "Nur eines von beiden"], correctAnswer: "Suppe, dann warme Vorspeise", source: "Gerfried PDF, F40 / Lena PDF S.11" },
+            { question: "Welches Serviersystem beinhaltet einen Maitre d'hotel und einen Sommelier?", options: ["Einkellner-System", "Mehrkellner-System", "Chef de rang System", "Tellerservice-System"], correctAnswer: "Chef de rang System", source: "Gerfried PDF, F41" },
+            { question: "Was beinhaltet ein einfaches Frühstück typischerweise?", options: ["Frühstücksgetränk, Gebäck, Butter, Marmelade, Ei", "Nur ein Frühstücksgetränk", "Frühstücksgetränk und Gebäck", "Ein komplettes Buffet"], correctAnswer: "Frühstücksgetränk und Gebäck", source: "Gerfried PDF, F42 / Lena PDF S.12" },
+            { question: "Was ist charakteristisch für das Wiener Frühstück?", options: ["Toast statt Gebäck", "Baked Beans und Würstchen", "Komplettes Frühstück mit Ei nach Wahl", "Nur Kaffee und Kuchen"], correctAnswer: "Komplettes Frühstück mit Ei nach Wahl", source: "Gerfried PDF, F42 / Lena PDF S.12" },
+            { question: "Bei welcher Servierart legt die Servierkraft dem Gast die Speisen von der Platte auf den Teller?", options: ["Tellerservice", "Englisches Service (Anrichten)", "Einstellen von Platten", "Französisches Service (Vorlegen)"], correctAnswer: "Französisches Service (Vorlegen)", source: "Gerfried PDF, F43 / Lena PDF S.12" },
+            { question: "Bei welcher Servierart werden die Speisen am Guéridon auf den Teller angerichtet?", options: ["Tellerservice", "Französisches Service (Vorlegen)", "Englisches Service (Anrichten)", "Buffetservice"], correctAnswer: "Englisches Service (Anrichten)", source: "Gerfried PDF, F43 / Lena PDF S.12" },
+            { question: "Was wird beim Tranchieren gemacht?", options: ["Saucen zubereitet", "Fisch von Gräten befreit", "Große Fleischstücke in Portionsgröße geschnitten", "Speisen mit Alkohol übergossen und angezündet"], correctAnswer: "Große Fleischstücke in Portionsgröße geschnitten", source: "Gerfried PDF, F44 / Lena PDF S.9/S.12" },
+            { question: "Was passiert beim Flambieren?", options: ["Speisen werden überbacken", "Fleisch wird mariniert", "Speisen werden mit passendem Alkohol übergossen und angezündet", "Obst wird geschält"], correctAnswer: "Speisen werden mit passendem Alkohol übergossen und angezündet", source: "Gerfried PDF, F44 / Lena PDF S.12" },
 
-             // Final count is 107 unique questions based on all provided sources.
+             // Logiskunde Block (Gerfried PDF / Lena PDF)
+            { question: "Welches Schlüsselsystem wird oft für einen bestimmten Zeitraum programmiert?", options: ["Zylinderschlösser mit Metallschlüssel", "Schlüsselkarten", "Einfache Türriegel", "Vorhängeschlösser"], correctAnswer: "Schlüsselkarten", source: "Gerfried PDF, F45 / Lena PDF S.3" },
+            { question: "Was bedeutet 'No Show' im Hotel?", options: ["Der Gast reist früher ab", "Der Gast beschwert sich", "Der Gast nimmt gebuchte Räume nicht in Anspruch", "Das Zimmer ist noch nicht bereit"], correctAnswer: "Der Gast nimmt gebuchte Räume nicht in Anspruch", source: "Gerfried PDF, F46 / Lena PDF S.3" },
+            { question: "Was darf bei einem 'No Show' NICHT verrechnet werden?", options: ["Der volle Zimmerpreis", "Stornogebühren", "Ortstaxe und Frühstück", "90% des Arrangementpreises"], correctAnswer: "Ortstaxe und Frühstück", source: "Gerfried PDF, F46 / Lena PDF S.3" },
+            { question: "Welche Aufgabe gehört typischerweise zum Front Office?", options: ["Dienstpläne erstellen", "Werbeaussendungen gestalten", "Empfang und Registrierung der Gäste", "Social Media Betreuung"], correctAnswer: "Empfang und Registrierung der Gäste", source: "Gerfried PDF, F47 / Lena PDF S.9" },
+            { question: "Welche Aufgabe gehört typischerweise zum Back Office?", options: ["Zimmervergabe", "Gästeinformation", "Tagesabschluss", "Verwaltung und Dienstpläne"], correctAnswer: "Verwaltung und Dienstpläne", source: "Gerfried PDF, F47 / Lena PDF S.12" },
+            { question: "Was ist eine typische Aufgabe eines Concierge?", options: ["Zimmerreinigung", "Speisenzubereitung", "Tickets für Veranstaltungen besorgen", "Buchhaltung"], correctAnswer: "Tickets für Veranstaltungen besorgen", source: "Gerfried PDF, F48 / Lena PDF S.10" },
+            { question: "Wofür steht die Abkürzung PMS?", options: ["Property Maintenance Service", "Personnel Management System", "Property Management System", "Payment Management Service"], correctAnswer: "Property Management System", source: "Gerfried PDF, F49 / Lena PDF S.12" },
+            { question: "Wie oft werden kategorisierte Hotelbetriebe (nicht Superior/5*) überprüft?", options: ["Jedes Jahr", "Alle 3 Jahre", "Alle 5 Jahre", "Alle 10 Jahre"], correctAnswer: "Alle 5 Jahre", source: "Gerfried PDF, F50" },
+            { question: "Was ist das Gästeblatt?", options: ["Die Speisekarte des Hotels", "Ein Formular zur Registrierung der Gäste", "Eine Hotelbroschüre", "Die Rechnung des Gastes"], correctAnswer: "Ein Formular zur Registrierung der Gäste", source: "Gerfried PDF, F51 / Lena PDF S.13" },
+            { question: "Welche Eigenschaft ist für einen Rezeptionisten wichtig?", options: ["Verschlossenheit", "Unhöflichkeit", "Offenes, höfliches Auftreten", "Mangelnde Sprachkenntnisse"], correctAnswer: "Offenes, höfliches Auftreten", source: "Gerfried PDF, F52" },
+            { question: "Was ist Booking.com?", options: ["Ein Property Management System", "Ein Global Distribution System (GDS)", "Ein Online Travel Agent (OTA)", "Eine Hotelkette"], correctAnswer: "Ein Online Travel Agent (OTA)", source: "Gerfried PDF, F53 / Lena PDF S.5/S.10" },
+            { question: "Was ist ein 'Package' bei einer Hotelbuchung?", options: ["Nur das Zimmer", "Nur das Frühstück", "Ein Paket von Leistungen (z.B. Zimmer + Mahlzeiten + Zusatzleistung)", "Ein Rabattcode"], correctAnswer: "Ein Paket von Leistungen (z.B. Zimmer + Mahlzeiten + Zusatzleistung)", source: "Gerfried PDF, F54 / Lena PDF S.12" },
+
+            // Hygiene & Sicherheit Block (Gerfried PDF / Lena PDF)
+            { question: "Was gehört zur persönlichen Hygiene in der Küche?", options: ["Offene Schuhe tragen", "Schmuck tragen (außer Ehering)", "Kopfbedeckung tragen", "Lange, lackierte Nägel haben"], correctAnswer: "Kopfbedeckung tragen", source: "Gerfried PDF, F55 / Lena PDF S.4" },
+            { question: "Was ist eine thermische Desinfektionsmethode?", options: ["Reinigung mit Chlor", "Verwendung von Desinfektionsspray", "Reinigung im Geschirrspüler bei über 75°C", "Abwischen mit Alkohol"], correctAnswer: "Reinigung im Geschirrspüler bei über 75°C", source: "Gerfried PDF, F56 / Lena PDF S.14" },
+            { question: "Was ist das Ziel eines HACCP-Konzepts?", options: ["Maximierung des Gewinns", "Minimierung der Personalkosten", "Gefahren erkennen, vermeiden und minimieren", "Beschleunigung der Arbeitsabläufe"], correctAnswer: "Gefahren erkennen, vermeiden und minimieren", source: "Gerfried PDF, F57 / Lena PDF S.8" },
+            { question: "Wie oft müssen Ersthelfer im Betrieb eine Auffrischungsschulung absolvieren?", options: ["Jedes Jahr", "Alle 2 Jahre", "Alle 4 Jahre", "Alle 5 Jahre"], correctAnswer: "Alle 4 Jahre", source: "Gerfried PDF, F58" },
+            { question: "Womit sollte eine brennende Fritteuse (Fettbrand) gelöscht werden?", options: ["Wasser", "Einer normalen Löschdecke", "Einem Fettbrandlöscher (Klasse F)", "Einem Pulverlöscher (Klasse ABC)"], correctAnswer: "Einem Fettbrandlöscher (Klasse F)", source: "Gerfried PDF, F59 / Lena PDF S.14" },
+
+            // Umweltschutz Block (Gerfried PDF / Lena PDF)
+            { question: "Was ist das oberste Prinzip der Abfallwirtschaft?", options: ["Mülltrennung", "Recycling", "Abfallvermeidung", "Kompostierung"], correctAnswer: "Abfallvermeidung", source: "Gerfried PDF, F60" },
+            { question: "Wie müssen Küchen- und Speiseabfälle mit tierischen Anteilen entsorgt werden?", options: ["Über den normalen Hausmüll", "Kompostierung im eigenen Garten", "Über ein spezialisiertes Entsorgungsunternehmen mit Vereinbarung", "Verbrennung im Freien"], correctAnswer: "Über ein spezialisiertes Entsorgungsunternehmen mit Vereinbarung", source: "Gerfried PDF, F60" },
+            { question: "Wie lange müssen Aufzeichnungen über Abfälle aufbewahrt werden?", options: ["1 Jahr", "3 Jahre", "5 Jahre", "7 Jahre"], correctAnswer: "7 Jahre", source: "Gerfried PDF, F60" },
+
+            // Rechtskunde Block (Gerfried PDF / Lena PDF / Rechtskunde PDF)
+            { question: "Welcher Steuersatz gilt für die meisten Speisen in der Gastronomie?", options: ["0%", "10%", "13%", "20%"], correctAnswer: "10%", source: "Gerfried PDF, F61 / Lena PDF S.3 / Rechtskunde PDF S.14" },
+            { question: "Welcher Steuersatz gilt für die meisten nicht begünstigten Getränke?", options: ["0%", "10%", "13%", "20%"], correctAnswer: "20%", source: "Gerfried PDF, F61 / Lena PDF S.3 / Rechtskunde PDF S.14" },
+            { question: "Was ist ein Dienstzettel?", options: ["Ein unterschriebener Arbeitsvertrag", "Eine schriftliche Aufzeichnung des Inhalts eines Dienstverhältnisses", "Die monatliche Lohnabrechnung", "Eine Kündigung"], correctAnswer: "Eine schriftliche Aufzeichnung des Inhalts eines Dienstverhältnisses", source: "Gerfried PDF, F62 / Lena PDF S.3 / Rechtskunde PDF S.6" },
+            { question: "Ist ein mündlicher Arbeitsvertrag gültig (außer Lehrvertrag)?", options: ["Nein, niemals", "Ja, aber ein Dienstzettel muss ausgestellt werden", "Nur für Teilzeitkräfte", "Nur im Gastgewerbe"], correctAnswer: "Ja, aber ein Dienstzettel muss ausgestellt werden", source: "Gerfried PDF, F63 / Lena PDF S.3-4 / Rechtskunde PDF S.6" },
+            { question: "Was ist ein Kettenarbeitsvertrag und ist er generell zulässig?", options: ["Ein Vertrag für Saisonarbeit, zulässig", "Mehrfache Aneinanderreihung befristeter Verträge, nicht zulässig (Ausnahme Saison)", "Ein Vertrag mit mehreren Arbeitgebern, zulässig", "Ein unbefristeter Vertrag, zulässig"], correctAnswer: "Mehrfache Aneinanderreihung befristeter Verträge, nicht zulässig (Ausnahme Saison)", source: "Gerfried PDF, F63 / Rechtskunde PDF S.7" },
+            { question: "Wie lange dauert die Probezeit für Angestellte maximal, wenn vereinbart?", options: ["1 Woche", "14 Tage", "1 Monat", "3 Monate"], correctAnswer: "1 Monat", source: "Gerfried PDF, F64 / Lena PDF S.4 / Rechtskunde PDF S.7" },
+            { question: "Welche Kündigungsfrist gilt für Arbeitnehmer (Angestellte/Arbeiter) im Regelfall?", options: ["1 Woche zum Wochenende", "14 Tage zum Monatsende", "1 Monat zum Monatsletzten", "6 Wochen zum Quartalsende"], correctAnswer: "1 Monat zum Monatsletzten", source: "Gerfried PDF, F65 / Lena PDF S.4 / Rechtskunde PDF S.9" },
+            { question: "Was ist eine Entlassung?", options: ["Eine Kündigung durch den Arbeitnehmer", "Eine Beendigung im Probemonat", "Eine sofortige Beendigung durch den Arbeitgeber aus wichtigem Grund", "Eine einvernehmliche Auflösung"], correctAnswer: "Eine sofortige Beendigung durch den Arbeitgeber aus wichtigem Grund", source: "Gerfried PDF, F65 / Lena PDF S.6 / Rechtskunde PDF S.9" },
+            { question: "Was ist ein vorzeitiger Austritt?", options: ["Eine Kündigung durch den Arbeitgeber", "Eine sofortige Beendigung durch den Arbeitnehmer aus wichtigem Grund", "Das Ende eines befristeten Vertrags", "Eine Pensionierung"], correctAnswer: "Eine sofortige Beendigung durch den Arbeitnehmer aus wichtigem Grund", source: "Gerfried PDF, F65 / Lena PDF S.6 / Rechtskunde PDF S.9" },
+            { question: "Wofür ist der gewerberechtliche Geschäftsführer gegenüber der Behörde verantwortlich?", options: ["Für den Umsatz des Betriebs", "Für die Ausbildung der Lehrlinge", "Für die Einhaltung aller gewerberechtlichen Vorschriften", "Für das Marketing"], correctAnswer: "Für die Einhaltung aller gewerberechtlichen Vorschriften", source: "Gerfried PDF, F66 / Lena PDF S.4/S.11 / Rechtskunde PDF S.2" },
+            { question: "Was regelt ein Kollektivvertrag?", options: ["Nur die Arbeitszeiten", "Nur die Gehälter", "Mindeststandards für Arbeitsbedingungen (Lohn/Gehalt, Arbeitszeit etc.) einer Branche", "Nur die Urlaubsansprüche"], correctAnswer: "Mindeststandards für Arbeitsbedingungen (Lohn/Gehalt, Arbeitszeit etc.) einer Branche", source: "Gerfried PDF, F67 / Lena PDF S.4" },
+            { question: "Was ist die Jahresremuneration?", options: ["Der Jahresumsatz", "Die tägliche Arbeitszeit", "Urlaubs- und Weihnachtsgeld", "Die Abfertigung"], correctAnswer: "Urlaubs- und Weihnachtsgeld", source: "Gerfried PDF, F68 / Lena PDF S.9" },
+            { question: "Was sollte der Arbeitgeber tun, wenn ein Mitarbeiter unentschuldigt nicht zur Arbeit erscheint?", options: ["Sofort entlassen", "Nichts tun", "Einen eingeschriebenen Brief mit Fristsetzung senden", "Die Polizei rufen"], correctAnswer: "Einen eingeschriebenen Brief mit Fristsetzung senden", source: "Gerfried PDF, F69 / Lena PDF S.13" },
+            { question: "Ist die Gastgewerbeberechtigung an einen bestimmten Standort gebunden?", options: ["Nein, sie gilt österreichweit", "Ja, sie ist an den im GISA gemeldeten Standort gebunden", "Nur bei Hotels, nicht bei Restaurants", "Nur wenn Alkohol ausgeschenkt wird"], correctAnswer: "Ja, sie ist an den im GISA gemeldeten Standort gebunden", source: "Gerfried PDF, F70 / Lena PDF S.13 / Rechtskunde PDF S.2" },
+            { question: "Was muss bei einem neuen Mitarbeiter vor Arbeitsantritt unbedingt erfolgen?", options: ["Die erste Gehaltszahlung", "Die Anmeldung beim zuständigen Krankenversicherungsträger", "Die Bestellung der Arbeitskleidung", "Die Urlaubsplanung"], correctAnswer: "Die Anmeldung beim zuständigen Krankenversicherungsträger", source: "Gerfried PDF, F71 & F82 / Lena PDF S.9" },
+            { question: "Benötigt ein Buschenschank eine Betriebsstättengenehmigung?", options: ["Nein, niemals", "Ja", "Nur wenn er mehr als 10 Tische hat", "Nur im Sommer"], correctAnswer: "Ja", source: "Gerfried PDF, F72 / Lena PDF S.14" },
+            { question: "Was muss unter anderem auf einem Lohnzettel stehen?", options: ["Nur der Nettobetrag", "Nur die Sozialversicherungsnummer", "Bruttolohn, Abzüge (SV, LSt), Nettobetrag", "Nur die gearbeiteten Stunden"], correctAnswer: "Bruttolohn, Abzüge (SV, LSt), Nettobetrag", source: "Gerfried PDF, F73 / Lena PDF S.14-15 / Rechtskunde PDF S.9-10" },
+            { question: "Welche Betriebsart gehört zu denen ohne Beherbergung mit vollem Speiseangebot?", options: ["Pension", "Espresso", "Restaurant", "Frühstückspension"], correctAnswer: "Restaurant", source: "Gerfried PDF, F74 / Lena PDF S.15" },
+            { question: "Was ist KEIN Merkmal einer gewerblichen Tätigkeit?", options: ["Regelmäßigkeit", "Ertragserzielungsabsicht", "Wirtschaftliche Selbstständigkeit", "Rein ehrenamtliche Ausübung"], correctAnswer: "Rein ehrenamtliche Ausübung", source: "Gerfried PDF, F75 / Rechtskunde PDF S.1" },
+            { question: "Was ist der Unterschied zwischen einem freien und einem reglementierten Gewerbe?", options: ["Freie Gewerbe sind nur im Freien erlaubt", "Für reglementierte Gewerbe ist ein Befähigungsnachweis nötig", "Freie Gewerbe sind steuerfrei", "Reglementierte Gewerbe dürfen nur von Einzelpersonen ausgeübt werden"], correctAnswer: "Für reglementierte Gewerbe ist ein Befähigungsnachweis nötig", source: "Gerfried PDF, F76 / Lena PDF S.10 / Rechtskunde PDF S.1" },
+            { question: "Welche Rechtsform gehört zu den Kapitalgesellschaften?", options: ["Einzelunternehmen", "Offene Gesellschaft (OG)", "Gesellschaft mit beschränkter Haftung (GmbH)", "Kommanditgesellschaft (KG)"], correctAnswer: "Gesellschaft mit beschränkter Haftung (GmbH)", source: "Gerfried PDF, F77 / Lena PDF S.5 / Rechtskunde PDF S.12" },
+            { question: "Wo meldet man ein Gewerbe an?", options: ["Beim Finanzamt", "Bei der Wirtschaftskammer", "Bei der Gewerbebehörde (BH oder Magistrat)", "Beim Arbeitsmarktservice"], correctAnswer: "Bei der Gewerbebehörde (BH oder Magistrat)", source: "Gerfried PDF, F78 / Lena PDF S.9 / Rechtskunde PDF S.1" },
+            { question: "Was ist eine Voraussetzung für die Gewerbeausübung?", options: ["Mindestalter 16 Jahre", "Keine abgeschlossene Ausbildung nötig", "Eigenberechtigung (Vollendung 18. LJ)", "Wohnsitz im Ausland"], correctAnswer: "Eigenberechtigung (Vollendung 18. LJ)", source: "Gerfried PDF, F79 / Rechtskunde PDF S.1" },
+            { question: "Was ist die Bemessungsgrundlage für die Kommunalsteuer?", options: ["Der Jahresgewinn", "Der Umsatz", "Die Summe der Bruttoarbeitslöhne", "Die Anzahl der Gäste"], correctAnswer: "Die Summe der Bruttoarbeitslöhne", source: "Gerfried PDF, F80 / Lena PDF S.6 / Rechtskunde PDF S.14" },
+            { question: "Muss das Jugendschutzgesetz im Lokal ersichtlich sein?", options: ["Nein, nur auf Nachfrage", "Ja, es muss leicht ersichtlich angebracht sein", "Nur wenn Jugendliche anwesend sind", "Nur in der Speisekarte"], correctAnswer: "Ja, es muss leicht ersichtlich angebracht sein", source: "Gerfried PDF, F81 / Lena PDF S.12 / Rechtskunde PDF S.2" },
+            { question: "Wer darf laut Gesetz NICHT beschäftigt werden?", options: ["Personen über 65 Jahre", "Teilzeitkräfte", "Kinder vor Beendigung der Schulpflicht", "Personen mit Behinderung"], correctAnswer: "Kinder vor Beendigung der Schulpflicht", source: "Gerfried PDF, F83 / Lena PDF S.9/S.15 / Rechtskunde PDF S.6" },
+            { question: "Wer ist für die Betriebsanlagengenehmigung verantwortlich?", options: ["Der Koch", "Der Kellner", "Der Inhaber/Betreiber", "Die Gemeinde"], correctAnswer: "Der Inhaber/Betreiber", source: "Gerfried PDF, F84 / Lena PDF S.12" },
+            { question: "Wann ist eine Betriebsanlagengenehmigung erforderlich?", options: ["Immer, bei jedem Betrieb", "Nur bei Neubauten", "Wenn von der Anlage Gefährdungen/Belästigungen ausgehen können", "Nur wenn mehr als 5 Mitarbeiter beschäftigt sind"], correctAnswer: "Wenn von der Anlage Gefährdungen/Belästigungen ausgehen können", source: "Gerfried PDF, F84 / Lena PDF S.14 / Rechtskunde PDF S.2" },
+            { question: "Wie oft muss eine genehmigte Betriebsanlage überprüft werden?", options: ["Nie nach der Genehmigung", "Jährlich", "Alle 5 bis 6 Jahre", "Alle 10 Jahre"], correctAnswer: "Alle 5 bis 6 Jahre", source: "Gerfried PDF, F84" },
+            { question: "Was ist die wöchentliche Normalarbeitszeit laut Kollektivvertrag im Gastgewerbe?", options: ["35 Stunden", "38,5 Stunden", "40 Stunden", "45 Stunden"], correctAnswer: "40 Stunden", source: "Gerfried PDF, F85 / Lena PDF S.16 / Rechtskunde PDF S.8" },
+            { question: "Wie viele Stunden beträgt die gesetzliche Höchstarbeitszeit pro Woche?", options: ["40 Stunden", "48 Stunden", "50 Stunden", "60 Stunden"], correctAnswer: "60 Stunden", source: "Gerfried PDF, F85 / Lena PDF S.16/S.18 / Rechtskunde PDF S.8" },
+            { question: "Nach wie vielen Stunden Arbeit steht eine halbstündige Pause zu?", options: ["Nach 4 Stunden", "Nach 5 Stunden", "Nach 6 Stunden", "Nach 8 Stunden"], correctAnswer: "Nach 6 Stunden", source: "Gerfried PDF, F85" },
+            { question: "Wie lange ist die tägliche Mindestruhezeit zwischen zwei Diensten?", options: ["8 Stunden", "10 Stunden", "11 Stunden", "12 Stunden"], correctAnswer: "11 Stunden", source: "Gerfried PDF, F85 / Lena PDF S.17 / Rechtskunde PDF S.9" },
+            { question: "Wie lange ist die Mindestruhezeit für Jugendliche?", options: ["10 Stunden", "11 Stunden", "12 Stunden", "14 Stunden"], correctAnswer: "12 Stunden", source: "Gerfried PDF, F85 / Lena PDF S.11/S.17 / Rechtskunde PDF S.9" },
+            { question: "Dürfen Jugendliche unter 16 Jahren regulär Überstunden leisten?", options: ["Ja, unbegrenzt", "Ja, bis zu 2 Stunden pro Tag", "Nein, nur in Ausnahmefällen (z.B. Vor-/Abschlussarbeiten mit Ausgleich)", "Nur am Wochenende"], correctAnswer: "Nein, nur in Ausnahmefällen (z.B. Vor-/Abschlussarbeiten mit Ausgleich)", source: "Gerfried PDF, F85" },
+            { question: "Wann ist eine Tätigkeit gewerblich?", options: ["Nur wenn Gewinn erzielt wird", "Wenn sie regelmäßig, selbstständig und mit Ertragszielungsabsicht ausgeübt wird", "Nur wenn Mitarbeiter beschäftigt werden", "Nur wenn sie im Firmenbuch eingetragen ist"], correctAnswer: "Wenn sie regelmäßig, selbstständig und mit Ertragszielungsabsicht ausgeübt wird", source: "Rechtskunde PDF, F1" },
+            { question: "Ist eine Privatzimmervermietung mit 8 Betten und ohne fremde Arbeitskräfte ein Gewerbe?", options: ["Ja, immer", "Nein, fällt unter Ausnahmen (häusliche Nebenbeschäftigung)", "Nur wenn Frühstück angeboten wird", "Nur wenn es länger als 6 Monate betrieben wird"], correctAnswer: "Nein, fällt unter Ausnahmen (häusliche Nebenbeschäftigung)", source: "Rechtskunde PDF, F2/F6" },
+            { question: "Welche Behörde ist für gewerberechtliche Angelegenheiten zuständig?", options: ["Finanzamt", "Arbeitsinspektorat", "Bezirksverwaltungsbehörde (BH/Magistrat)", "Wirtschaftskammer"], correctAnswer: "Bezirksverwaltungsbehörde (BH/Magistrat)", source: "Rechtskunde PDF, F7" },
+            { question: "Was ist KEIN Ausschlussgrund für die Gewerbeausübung?", options: ["Erhebliche gerichtliche Vorstrafen", "Finanzvergehen", "Ein nicht kostendeckendes Insolvenzverfahren", "Eine einzelne Geschwindigkeitsübertretung"], correctAnswer: "Eine einzelne Geschwindigkeitsübertretung", source: "Rechtskunde PDF, F8" },
+            { question: "Wer kann im Betriebsanlagenverfahren Einspruch erheben?", options: ["Nur der Betreiber", "Nur die Behörde", "Nachbarn und das Arbeitsinspektorat", "Nur Umweltorganisationen"], correctAnswer: "Nachbarn und das Arbeitsinspektorat", source: "Rechtskunde PDF, F11" },
+            { question: "Was definiert die 'Betriebsart' eines Gastgewerbes?", options: ["Die Rechtsform des Unternehmens", "Den Standort des Betriebs", "Den Leistungsumfang, zu dem der Betrieb berechtigt ist", "Die Anzahl der Mitarbeiter"], correctAnswer: "Den Leistungsumfang, zu dem der Betrieb berechtigt ist", source: "Rechtskunde PDF, F17" },
+            { question: "Darf ein Gastwirt Gäste wegen ihrer ethnischen Zugehörigkeit abweisen?", options: ["Ja, das ist Hausrecht", "Nein, das verstößt gegen das Benachteiligungsverbot", "Nur wenn das Lokal voll ist", "Nur mit Begründung"], correctAnswer: "Nein, das verstößt gegen das Benachteiligungsverbot", source: "Rechtskunde PDF, F26" },
+            { question: "Was besagt die Regelung zu 'Jugendgetränken'?", options: ["Jugendliche dürfen nur diese Getränke konsumieren", "Mindestens 2 alkoholfreie Getränke müssen günstiger sein als das billigste alkoholische", "Diese Getränke sind speziell für Jugendliche entwickelt", "Sie dürfen nur bis 22 Uhr verkauft werden"], correctAnswer: "Mindestens 2 alkoholfreie Getränke müssen günstiger sein als das billigste alkoholische", source: "Rechtskunde PDF, F27" },
+            { question: "Wo müssen Preise für Speisen und Getränke ausgezeichnet sein?", options: ["Nur mündlich auf Anfrage", "Nur am Eingang", "In Preisverzeichnissen (Speisekarten) in ausreichender Anzahl", "Nur auf der Website"], correctAnswer: "In Preisverzeichnissen (Speisekarten) in ausreichender Anzahl", source: "Rechtskunde PDF, F30" },
+            { question: "Gibt es Ausnahmen vom Rauchverbot in der Gastronomie?", options: ["Ja, in abgetrennten Raucherräumen mit Konsumation", "Nein, absolutes Rauchverbot in allen Innenräumen", "Ja, auf Freiflächen", "Ja, wenn der Wirt es erlaubt"], correctAnswer: "Ja, auf Freiflächen", source: "Rechtskunde PDF, F33" }, // Beachte: Raucherraum ohne Konsumation in Hotels möglich, aber nicht die allgemeine Ausnahme für Gastro.
+            { question: "Welche Daten des Gastes sind im Meldezettel NICHT verpflichtend anzugeben?", options: ["Name", "Geburtsdatum", "Beruf", "Staatsangehörigkeit"], correctAnswer: "Beruf", source: "Rechtskunde PDF, F36" },
+            { question: "Wie lange müssen Gästeblätter aufbewahrt werden?", options: ["1 Jahr", "3 Jahre", "7 Jahre", "10 Jahre"], correctAnswer: "7 Jahre", source: "Rechtskunde PDF, F39 / Gerfried PDF F51 / Lena PDF S.13" },
+            { question: "Welche Gesetze sind typischerweise aushangpflichtig im Betrieb?", options: ["Nur das Gewerbegesetz", "Arbeitszeitgesetz, Mutterschutzgesetz, etc.", "Nur der Kollektivvertrag", "Keine"], correctAnswer: "Arbeitszeitgesetz, Mutterschutzgesetz, etc.", source: "Rechtskunde PDF, F2 (S.6)" },
+            { question: "Muss ein Lehrvertrag schriftlich abgeschlossen werden?", options: ["Nein, mündlich reicht", "Ja, immer", "Nur wenn der Lehrling minderjährig ist", "Nur im Gastgewerbe"], correctAnswer: "Ja, immer", source: "Rechtskunde PDF, F11 (S.6) / Gerfried PDF F63" },
+            { question: "Was passiert, wenn ein befristetes Dienstverhältnis über die vereinbarte Zeit hinaus fortgesetzt wird (ohne neue Vereinbarung)?", options: ["Es endet automatisch", "Es wird automatisch zu einem unbefristeten Vertrag", "Es muss eine Strafe gezahlt werden", "Der Mitarbeiter muss neu angemeldet werden"], correctAnswer: "Es wird automatisch zu einem unbefristeten Vertrag", source: "Rechtskunde PDF, F16 (S.7)" },
+            { question: "Wer ist vom Ausländerbeschäftigungsgesetz ausgenommen?", options: ["Alle Touristen", "Nur Asylbewerber", "Staatsangehörige der EWR-Länder und der Schweiz", "Nur Fachkräfte"], correctAnswer: "Staatsangehörige der EWR-Länder und der Schweiz", source: "Rechtskunde PDF, F19 (S.7) / Gerfried PDF F83" },
+            { question: "Wann beginnt die Pflichtversicherung für einen neuen Mitarbeiter?", options: ["Nach dem Probemonat", "Am ersten Arbeitstag", "Vor Arbeitsantritt (Meldung)", "Nach der ersten Lohnzahlung"], correctAnswer: "Vor Arbeitsantritt (Meldung)", source: "Rechtskunde PDF, F20 (S.7) / Gerfried PDF F82" },
+            { question: "Wie hoch ist der Beitragssatz zur Betrieblichen Mitarbeitervorsorge ('Abfertigung Neu')?", options: ["1,00%", "1,53%", "2,50%", "3,00%"], correctAnswer: "1,53%", source: "Rechtskunde PDF, F21 (S.7)" },
+            { question: "Was bedeutet die Fünftagewoche im Gastgewerbe?", options: ["Generelles Arbeitsverbot am Wochenende", "Maximal 5 Arbeitstage pro Woche, 2 Tage frei (nicht zwingend Sa/So)", "Nur 5 Stunden Arbeit pro Tag", "5 Wochen Urlaub pro Jahr"], correctAnswer: "Maximal 5 Arbeitstage pro Woche, 2 Tage frei (nicht zwingend Sa/So)", source: "Rechtskunde PDF, F22 (S.7) / Gerfried PDF F85" },
+            { question: "Ist eine Durchrechnung der Arbeitszeit über einen längeren Zeitraum möglich?", options: ["Nein, niemals", "Ja, unter bestimmten Voraussetzungen (z.B. KV, Vereinbarung)", "Nur für Teilzeitkräfte", "Nur im Sommer"], correctAnswer: "Ja, unter bestimmten Voraussetzungen (z.B. KV, Vereinbarung)", source: "Rechtskunde PDF, F23 (S.8) / Gerfried PDF F85" },
+            { question: "Müssen Arbeitszeitaufzeichnungen geführt werden?", options: ["Nein, Vertrauensarbeitszeit reicht", "Ja, der Arbeitgeber ist dazu verpflichtet", "Nur für Überstunden", "Nur für Lehrlinge"], correctAnswer: "Ja, der Arbeitgeber ist dazu verpflichtet", source: "Rechtskunde PDF, F25 (S.8) / Gerfried PDF F85" },
+            { question: "Ist Trinkgeld ein Lohnbestandteil und somit Lohnsteuerpflichtig?", options: ["Ja, immer", "Nein, es ist eine freiwillige Leistung Dritter und nicht lohnsteuerpflichtig (aber SV-pflichtig)", "Nur wenn es über 10€ beträgt", "Nur wenn es elektronisch gegeben wird"], correctAnswer: "Nein, es ist eine freiwillige Leistung Dritter und nicht lohnsteuerpflichtig (aber SV-pflichtig)", source: "Rechtskunde PDF, F26 (S.8)" },
+            { question: "Wie werden Überstunden normalerweise abgegolten?", options: ["Gar nicht", "Mit Zeitausgleich 1:1", "Mit einem Zuschlag (z.B. 50%) oder Zeitausgleich (>1:1)", "Mit einem Pauschalbetrag"], correctAnswer: "Mit einem Zuschlag (z.B. 50%) oder Zeitausgleich (>1:1)", source: "Gerfried PDF F85 / Rechtskunde PDF F27 (implizit)" },
+            { question: "Wie wird Arbeit an einem gesetzlichen Feiertag entlohnt?", options: ["Wie ein normaler Arbeitstag", "Mit zusätzlichem Feiertagsarbeitsentgelt", "Mit doppeltem Lohn", "Nur mit Zeitausgleich"], correctAnswer: "Mit zusätzlichem Feiertagsarbeitsentgelt", source: "Rechtskunde PDF, F28 (S.9)" },
+            { question: "Welche Kündigungsbeschränkungen gibt es?", options: ["Keine", "Nur für Geschäftsführer", "Für Schwangere, Präsenzdiener, Betriebsräte, Lehrlinge (nach Probezeit), Menschen mit Behinderung", "Nur für langjährige Mitarbeiter"], correctAnswer: "Für Schwangere, Präsenzdiener, Betriebsräte, Lehrlinge (nach Probezeit), Menschen mit Behinderung", source: "Rechtskunde PDF, F32 (S.9)" },
+            { question: "Was muss ein Dienstzeugnis mindestens enthalten?", options: ["Eine Bewertung der Leistung", "Den Kündigungsgrund", "Dauer und Art der Tätigkeit", "Das Gehalt"], correctAnswer: "Dauer und Art der Tätigkeit", source: "Rechtskunde PDF, F35 (S.10)" },
+            { question: "Was ist ein wesentlicher Unterschied zwischen Personen- und Kapitalgesellschaften bezüglich der Haftung?", options: ["Kein Unterschied", "Bei Personengesellschaften haften Gesellschafter oft unbeschränkt (mit Privatvermögen), bei Kapitalgesellschaften beschränkt auf die Einlage", "Bei Kapitalgesellschaften haften nur die Geschäftsführer", "Bei Personengesellschaften haftet nur die Gesellschaft"], correctAnswer: "Bei Personengesellschaften haften Gesellschafter oft unbeschränkt (mit Privatvermögen), bei Kapitalgesellschaften beschränkt auf die Einlage", source: "Rechtskunde PDF, F15 (S.12)" },
+            { question: "Was versteht man unter dem Vorsteuerabzug?", options: ["Eine Steuererleichterung für Privatpersonen", "Unternehmer können die an andere Unternehmer gezahlte USt vom Finanzamt zurückfordern", "Eine Vorauszahlung auf die Einkommensteuer", "Ein Rabatt für schnelle Zahlung"], correctAnswer: "Unternehmer können die an andere Unternehmer gezahlte USt vom Finanzamt zurückfordern", source: "Rechtskunde PDF, F1 (S.14)" },
+            { question: "Was ist Eigenverbrauch im steuerlichen Sinn?", options: ["Der Verbrauch von Strom im Betrieb", "Die private Nutzung von Betriebsvermögen oder -leistungen durch den Unternehmer/Mitarbeiter", "Der Einkauf von Waren für den Betrieb", "Die Abschreibung von Geräten"], correctAnswer: "Die private Nutzung von Betriebsvermögen oder -leistungen durch den Unternehmer/Mitarbeiter", source: "Rechtskunde PDF, F3 (S.14)" },
+            { question: "Was ist eine Gebrauchsabgabe?", options: ["Eine Steuer auf alle gekauften Waren", "Ein Entgelt für die Nutzung von öffentlichem Grund (z.B. Schanigarten)", "Die Müllabfuhrgebühr", "Die Rundfunkgebühr"], correctAnswer: "Ein Entgelt für die Nutzung von öffentlichem Grund (z.B. Schanigarten)", source: "Rechtskunde PDF, F5 (S.14)" },
+            { question: "Welche Behörde hebt die Umsatzsteuer (Mehrwertsteuer) ein?", options: ["Die Gemeinde", "Die Wirtschaftskammer", "Das Finanzamt", "Die Sozialversicherung"], correctAnswer: "Das Finanzamt", source: "Rechtskunde PDF, F7 (S.14)" },
+            { question: "Wer ist bei der SVS (Sozialversicherung der Selbständigen) pflichtversichert?", options: ["Alle Arbeitnehmer", "Nur Angestellte", "Einzelunternehmer, Gesellschafter von Personengesellschaften, GmbH-Geschäftsführer (unter bestimmten Bedingungen)", "Nur Lehrlinge"], correctAnswer: "Einzelunternehmer, Gesellschafter von Personengesellschaften, GmbH-Geschäftsführer (unter bestimmten Bedingungen)", source: "Rechtskunde PDF, F11 (S.14)" },
+            { question: "Gegen welches Risiko ist ein Unternehmer bei der SVS NICHT automatisch pflichtversichert?", options: ["Krankheit", "Pension", "Unfall", "Arbeitslosigkeit"], correctAnswer: "Arbeitslosigkeit", source: "Rechtskunde PDF, F12 (S.14)" }
         ];
 
 
-        // --- DOM Elements ---
-        const quizTitleEl = document.getElementById('quiz-title');
-        const questionTextEl = document.getElementById('question-text');
-        const optionsContainerEl = document.getElementById('options-container');
-        const feedbackEl = document.getElementById('feedback');
-        const checkBtn = document.getElementById('check-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const prevBtn = document.getElementById('prev-btn'); // Added reference for Back button
-        const questionCounterEl = document.getElementById('question-counter');
-        const quizContainer = document.getElementById('quiz');
-        const quizCompleteContainer = document.getElementById('quiz-complete');
-        const finalScoreEl = document.getElementById('final-score');
-        const totalPossibleScoreEl = document.getElementById('total-possible-score');
-        const restartBtn = document.getElementById('restart-btn');
+        // --- Quiz Logic ---
+        // Get references to HTML elements
+        const quizContainer = document.getElementById('quiz-container');
+        const questionArea = document.getElementById('question-area');
+        const resultsArea = document.getElementById('results-area');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const navigationButtonsContainer = document.getElementById('navigation-buttons');
+        const submitButton = document.getElementById('submit-button');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const prevButton = document.getElementById('prev-button');
+        const restartButton = document.getElementById('restart-button');
+        const finalScoreCorrect = document.getElementById('final-score-correct');
+        const finalScoreTotal = document.getElementById('final-score-total');
+        const finalPercentage = document.getElementById('final-percentage');
+        const finalGrade = document.getElementById('final-grade');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressLabel = document.getElementById('progress-label');
 
-        // --- State ---
+        // Quiz state variables
         let currentQuestionIndex = 0;
-        let selectedAnswerIndex = null;
         let score = 0;
-        let quizFinished = false; // Tracks if the current question has been checked
-        let shuffledQuizData = []; // Array to hold the shuffled questions for the current session
-        let canNavigateBack = false; // Flag to control the back button limitation
-        let userAnswersState = {}; // Object to store the state of answered questions { questionIndex: {selectedIndex: number, wasCorrect: boolean} }
-
-        // --- Functions ---
+        let questionHistory = []; // Stores answers and correctness for each question index
+        let currentSelectedOption = null; // Track the currently selected option button element
+        let canGoBack = true; // Flag to control the previous button behavior
 
         /**
-         * Shuffles array in place using Fisher-Yates algorithm.
-         * @param {Array} array Array containing items.
+         * Shuffles the elements of an array in place.
+         * Uses the Fisher-Yates (aka Knuth) shuffle algorithm.
+         * @param {Array} array The array to shuffle.
          */
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -312,208 +441,294 @@
             }
         }
 
+        /**
+         * Initializes the question history array with null values.
+         */
+        function initializeHistory() {
+             questionHistory = new Array(quizData.length).fill(null);
+        }
 
-        // Function to display the current question and options
-        function displayQuestion() {
-            quizFinished = false; // Reset finished state for the new question
-            selectedAnswerIndex = null; // Reset selected answer for the new question
+        /**
+         * Loads and displays the current question and its options.
+         * Handles displaying previously answered questions in a read-only state.
+         */
+        function loadQuestion() {
+            // --- Input Validation ---
+             if (!quizData || quizData.length === 0) {
+                 console.error("Quiz data is empty or not loaded.");
+                 quizContainer.innerHTML = "<p class='text-red-600 font-bold text-center'>Fehler: Quizdaten konnten nicht geladen werden.</p>";
+                 return;
+             }
+             if (currentQuestionIndex < 0 || currentQuestionIndex >= quizData.length) {
+                 console.error(`Invalid question index: ${currentQuestionIndex}`);
+                 if (currentQuestionIndex >= quizData.length) showResults();
+                 return;
+             }
 
-            const currentQuestion = shuffledQuizData[currentQuestionIndex];
-            questionTextEl.textContent = currentQuestion.question;
-            questionCounterEl.textContent = `Frage ${currentQuestionIndex + 1} von ${shuffledQuizData.length}`;
+            const currentQuestion = quizData[currentQuestionIndex];
+             if (!currentQuestion || !currentQuestion.options || !currentQuestion.question) {
+                 console.error(`Invalid question data at index: ${currentQuestionIndex}`, currentQuestion);
+                 if (currentQuestionIndex < quizData.length - 1) {
+                      loadNextQuestionLogic(); // Use the logic function
+                 } else {
+                      showResults();
+                 }
+                 return;
+             }
+            // --- End Input Validation ---
 
-            optionsContainerEl.innerHTML = '';
-            feedbackEl.textContent = '';
-            feedbackEl.className = 'feedback';
+            const historyEntry = questionHistory[currentQuestionIndex];
+            currentSelectedOption = null; // Reset selected option for the new question
 
-            const previousAnswerState = userAnswersState[currentQuestionIndex]; // Check if this question was answered before
+            // Reset UI elements
+            feedback.textContent = '';
+            feedback.className = 'feedback-text mt-4';
+            optionsContainer.innerHTML = '';
 
-            currentQuestion.options.forEach((option, index) => {
+            // Display question text
+            questionText.innerHTML = currentQuestion.question;
+
+            // Update progress bar
+            const progressPercent = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            progressLabel.textContent = `Frage ${currentQuestionIndex + 1} von ${quizData.length}`;
+
+            // Shuffle options if it's a new question
+            let displayOptions = [...currentQuestion.options];
+            if (!historyEntry) {
+                 shuffleArray(displayOptions);
+            }
+
+            // Create and display option buttons
+            displayOptions.forEach(option => {
                 const button = document.createElement('button');
                 button.textContent = option;
-                button.className = 'option-btn';
-                button.dataset.index = index;
+                button.classList.add('option-button');
+                optionsContainer.appendChild(button);
 
-                if (previousAnswerState) {
-                    // If navigating back to an answered question, show its state
-                    button.disabled = true; // Disable options
-                    if (index === previousAnswerState.selectedIndex) {
-                        button.classList.add(previousAnswerState.wasCorrect ? 'correct' : 'incorrect');
-                    }
-                    // Highlight the correct answer if the user was wrong
-                    if (!previousAnswerState.wasCorrect && index === currentQuestion.correctAnswerIndex) {
-                         button.classList.add('correct');
+                if (historyEntry) {
+                    // Question already answered (navigating back/forth)
+                    button.disabled = true;
+                    if (option === historyEntry.selectedAnswer) {
+                        button.classList.add(historyEntry.isCorrect ? 'correct' : 'incorrect');
+                    } else if (option === currentQuestion.correctAnswer && !historyEntry.isCorrect) {
+                        button.classList.add('correct');
                     }
                 } else {
-                    // If it's a new or revisited-but-not-yet-answered question
-                    button.addEventListener('click', handleOptionSelect);
+                    // New question, add click listener
+                    button.onclick = () => selectOption(button);
                 }
-                optionsContainerEl.appendChild(button);
             });
 
-            // Set button visibility and feedback based on whether the question was previously answered
-            if (previousAnswerState) {
-                checkBtn.classList.add('hidden');
-                nextBtn.classList.remove('hidden');
-                feedbackEl.textContent = previousAnswerState.wasCorrect ? 'Richtig!' : 'Falsch!';
-                feedbackEl.classList.add(previousAnswerState.wasCorrect ? 'correct' : 'incorrect');
-                quizFinished = true; // Mark as finished to prevent re-answering
-            } else {
-                checkBtn.disabled = true; // Disabled until an option is selected
-                checkBtn.classList.remove('hidden');
-                nextBtn.classList.add('hidden');
+            // Show feedback if already answered
+            if (historyEntry) {
+                feedback.textContent = historyEntry.isCorrect ? 'Richtig!' : `Falsch. Die richtige Antwort war: ${currentQuestion.correctAnswer}`;
+                feedback.classList.add(historyEntry.isCorrect ? 'correct' : 'incorrect');
             }
 
-            // Enable/disable Back button based on index and canNavigateBack flag
-            prevBtn.disabled = currentQuestionIndex === 0 || !canNavigateBack;
+            // Update navigation/action button states
+            updateNavigationButtons(!!historyEntry);
 
-            // Ensure the main quiz container is visible
-             quizContainer.style.display = 'block';
-             quizCompleteContainer.classList.add('hidden');
-
-             // Scroll window to top to see the question
-             window.scrollTo(0, 0);
+            // Show/hide relevant areas
+            questionArea.classList.remove('hidden');
+            resultsArea.classList.add('hidden');
+            progressContainer.classList.remove('hidden');
+            navigationButtonsContainer.classList.remove('hidden');
         }
 
-        // Function to handle option selection (before checking)
-        function handleOptionSelect(event) {
-            if (quizFinished) return;
+       /**
+        * Updates the visibility and state of navigation and action buttons.
+        * @param {boolean} isAnswered - Whether the current question has already been answered.
+        */
+       function updateNavigationButtons(isAnswered) {
+            // Previous Button Logic: Enable only if not on the first question AND canGoBack is true.
+            // Use visibility to keep layout space.
+            const isPrevButtonVisible = currentQuestionIndex > 0;
+            prevButton.disabled = !isPrevButtonVisible || !canGoBack;
+            prevButton.classList.toggle('invisible', !isPrevButtonVisible); // Use visibility hidden
 
-            const selectedButton = event.target;
-            selectedAnswerIndex = parseInt(selectedButton.dataset.index);
 
-            const optionButtons = optionsContainerEl.querySelectorAll('.option-btn');
-            optionButtons.forEach(btn => {
-                btn.classList.remove('selected', 'correct', 'incorrect');
-            });
+            // Action Buttons Logic (Submit / Next)
+            if (isAnswered) {
+                // If question is already answered
+                submitButton.classList.add('hidden'); // Hide submit
+                nextQuestionButton.classList.remove('hidden'); // Show next
+                nextQuestionButton.disabled = false;
 
-            selectedButton.classList.add('selected');
-            checkBtn.disabled = false;
+                if (currentQuestionIndex === quizData.length - 1) {
+                     nextQuestionButton.textContent = "Quiz beenden";
+                } else {
+                     nextQuestionButton.textContent = "Nächste Frage";
+                }
+
+            } else {
+                // If question is new or not yet answered
+                submitButton.classList.remove('hidden'); // Show submit
+                submitButton.disabled = (currentSelectedOption === null);
+                nextQuestionButton.classList.add('hidden'); // Hide next
+                nextQuestionButton.disabled = true;
+            }
         }
 
-        // Function to check the selected answer
+
+        /**
+         * Handles the user selecting an answer option. Visually marks selection.
+         * @param {HTMLButtonElement} button - The button element that was clicked.
+         */
+        function selectOption(button) {
+            // Prevent action if already answered
+            if (questionHistory[currentQuestionIndex]) return;
+
+            // Remove selection from previously selected button (if any)
+            const currentlySelected = optionsContainer.querySelector('.selected');
+            if (currentlySelected) {
+                currentlySelected.classList.remove('selected');
+            }
+
+            // Mark the new button as selected
+            button.classList.add('selected');
+            currentSelectedOption = button; // Store the selected button element
+
+            // Enable the submit button
+            submitButton.disabled = false;
+        }
+
+        /**
+         * Checks the selected answer, provides feedback, updates score, stores history, and disables options.
+         */
         function checkAnswer() {
-            if (selectedAnswerIndex === null) return;
+             // Prevent checking if no option is selected or if already checked
+            if (!currentSelectedOption || questionHistory[currentQuestionIndex]) return;
 
-            quizFinished = true;
-            const correctIndex = shuffledQuizData[currentQuestionIndex].correctAnswerIndex;
-            const wasCorrect = selectedAnswerIndex === correctIndex;
+            const selectedOptionText = currentSelectedOption.textContent;
+            const currentQuestion = quizData[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('.option-button');
+            const isCorrect = (selectedOptionText === currentQuestion.correctAnswer);
 
-            // Store the answer state
-            userAnswersState[currentQuestionIndex] = {
-                 selectedIndex: selectedAnswerIndex,
-                 wasCorrect: wasCorrect
+            // Store result in history
+            questionHistory[currentQuestionIndex] = {
+                selectedAnswer: selectedOptionText,
+                isCorrect: isCorrect,
+                alreadyAnswered: true
             };
 
+            // Update score and provide feedback
+            if (isCorrect) {
+                score++;
+                feedback.textContent = 'Richtig!';
+                feedback.classList.add('correct');
+                currentSelectedOption.classList.add('correct');
+            } else {
+                feedback.textContent = `Falsch. Die richtige Antwort ist: ${currentQuestion.correctAnswer}`;
+                feedback.classList.add('incorrect');
+                currentSelectedOption.classList.add('incorrect');
+                // Highlight the correct answer as well
+                 buttons.forEach(btn => {
+                    if (btn.textContent === currentQuestion.correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
 
-            const optionButtons = optionsContainerEl.querySelectorAll('.option-btn');
-            optionButtons.forEach((btn, index) => {
-                btn.disabled = true;
-                btn.classList.remove('selected');
-
-                if (index === correctIndex) {
-                    btn.classList.add('correct');
-                } else if (index === selectedAnswerIndex) {
-                    btn.classList.add('incorrect');
-                }
+            // Disable all option buttons and remove selection highlight
+            buttons.forEach(btn => {
+                 btn.disabled = true;
+                 btn.classList.remove('selected');
             });
 
-            if (wasCorrect) {
-                score++; // Only increment score when initially answered correctly
-                feedbackEl.textContent = 'Richtig!';
-                feedbackEl.classList.add('correct');
-            } else {
-                feedbackEl.textContent = 'Falsch!';
-                feedbackEl.classList.add('incorrect');
-            }
+            // Allow going back again after answering
+             canGoBack = true;
 
-            checkBtn.classList.add('hidden');
-            checkBtn.disabled = true;
-            nextBtn.classList.remove('hidden');
-            canNavigateBack = true; // Allow going back once after checking
-            prevBtn.disabled = currentQuestionIndex === 0; // Re-enable if not first question
+            // Update buttons: hide submit, show next
+            updateNavigationButtons(true); // Update button states reflecting the answered state
+        }
 
 
-            if (currentQuestionIndex === shuffledQuizData.length - 1) {
-                nextBtn.textContent = 'Ergebnis anzeigen';
-            } else {
-                nextBtn.textContent = 'Nächste Frage';
-            }
-             // Scroll to the feedback/button area after checking
-             try {
-                feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-             } catch (e) {
-                console.error("Could not scroll to feedback:", e);
+        /**
+         * Logic to advance to the next question or show results.
+         */
+        function loadNextQuestionLogic() {
+             if (currentQuestionIndex < quizData.length - 1) {
+                 currentQuestionIndex++;
+                 canGoBack = true; // Allow going back from the new question
+                 loadQuestion();
+             } else {
+                 showResults();
              }
         }
 
-
-        // Function to go to the next question or show results
-        function nextQuestion() {
-            if (currentQuestionIndex < shuffledQuizData.length - 1) {
-                currentQuestionIndex++;
-                canNavigateBack = true; // Allow going back after moving forward
-                displayQuestion();
-            } else {
-                 quizContainer.style.display = 'none';
-                 quizCompleteContainer.classList.remove('hidden');
-                 quizCompleteContainer.style.display = 'block';
-
-                 finalScoreEl.textContent = score;
-                 totalPossibleScoreEl.textContent = shuffledQuizData.length;
-                 window.scrollTo(0,0);
-            }
-        }
-
-        // Function to go to the previous question
-        function prevQuestion() {
-             if (currentQuestionIndex > 0 && canNavigateBack) {
+        /**
+         * Loads the previous question in the quiz sequence, if allowed.
+         */
+        function loadPreviousQuestion() {
+             // Only allow going back if not on the first question AND the flag allows it
+             if (currentQuestionIndex > 0 && canGoBack) {
                  currentQuestionIndex--;
-                 canNavigateBack = false; // Disable going back further immediately
-                 // Display the previous question with its stored state
-                 displayQuestion();
+                 canGoBack = false; // Prevent going back further immediately
+                 loadQuestion();
              }
         }
 
+        /**
+        * Calculates the grade based on the percentage score.
+        * @param {number} percentage - The percentage score achieved.
+        * @returns {string} The corresponding grade.
+        */
+        function calculateGrade(percentage) {
+            if (percentage >= 90) return "Sehr Gut";
+            if (percentage >= 80) return "Gut";
+            if (percentage >= 70) return "Befriedigend";
+            if (percentage >= 50) return "Genügend";
+            return "Nicht Genügend";
+        }
 
-        // Function to restart the quiz
+
+        /**
+         * Hides the question area and displays the final score and grade.
+         */
+        function showResults() {
+            questionArea.classList.add('hidden');
+            progressContainer.classList.add('hidden');
+            navigationButtonsContainer.classList.add('hidden'); // Hide nav buttons on results page
+            resultsArea.classList.remove('hidden'); // Show results area
+
+            // Display the final score and percentage
+            finalScoreCorrect.textContent = score;
+            finalScoreTotal.textContent = quizData.length;
+            const percentage = quizData.length > 0 ? Math.round((score / quizData.length) * 100) : 0;
+            finalPercentage.textContent = percentage;
+
+            // Calculate and display the grade
+            const grade = calculateGrade(percentage);
+            finalGrade.textContent = `Note: ${grade}`; // Display the calculated grade
+        }
+
+        /**
+         * Resets the quiz state, shuffles questions, and loads the first question.
+         */
         function restartQuiz() {
             currentQuestionIndex = 0;
             score = 0;
-            selectedAnswerIndex = null;
-            quizFinished = false;
-            canNavigateBack = false; // Reset back navigation flag
-            userAnswersState = {}; // Clear stored answers
-            shuffleArray(shuffledQuizData); // Re-shuffle
-            displayQuestion();
+            currentSelectedOption = null;
+            canGoBack = true; // Reset the flag on restart
+            shuffleArray(quizData); // Re-shuffle questions for a new attempt
+            initializeHistory(); // Reset the history
+            resultsArea.classList.add('hidden'); // Hide results
+            questionArea.classList.remove('hidden'); // Show question area
+            navigationButtonsContainer.classList.remove('hidden'); // Show nav buttons
+            loadQuestion(); // Load the first question
         }
 
         // --- Event Listeners ---
-         document.addEventListener('DOMContentLoaded', () => {
-            const checkBtnElem = document.getElementById('check-btn');
-            const nextBtnElem = document.getElementById('next-btn');
-            const prevBtnElem = document.getElementById('prev-btn');
-            const restartBtnElem = document.getElementById('restart-btn');
+        submitButton.addEventListener('click', checkAnswer);
+        nextQuestionButton.addEventListener('click', loadNextQuestionLogic); // Use the logic function
+        prevButton.addEventListener('click', loadPreviousQuestion);
+        restartButton.addEventListener('click', restartQuiz);
 
-            if(checkBtnElem) checkBtnElem.addEventListener('click', checkAnswer);
-            if(nextBtnElem) nextBtnElem.addEventListener('click', nextQuestion);
-            if(prevBtnElem) prevBtnElem.addEventListener('click', prevQuestion);
-            if(restartBtnElem) restartBtnElem.addEventListener('click', restartQuiz);
-
-            // --- Initial Load ---
-            const totalQuestions = quizData.length;
-            document.title = `Interaktives Multiple-Choice-Quiz (${totalQuestions} Fragen): Gastronomie & Hotellerie Österreich`;
-            const quizTitleElem = document.getElementById('quiz-title');
-            if (quizTitleElem) quizTitleElem.textContent = `Multiple-Choice-Quiz (${totalQuestions} Fragen): Gastronomie & Hotellerie`;
-            const totalPossibleScoreElem = document.getElementById('total-possible-score');
-             if (totalPossibleScoreElem) totalPossibleScoreElem.textContent = totalQuestions;
-
-            shuffledQuizData = [...quizData];
-            shuffleArray(shuffledQuizData);
-
-            displayQuestion();
-         });
-
+        // --- Initial Setup ---
+        shuffleArray(quizData); // Shuffle questions on initial load
+        initializeHistory(); // Prepare the history array
+        loadQuestion(); // Load the first question
 
     </script>
 
